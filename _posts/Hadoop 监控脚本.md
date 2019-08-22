@@ -11,7 +11,9 @@ tags:
     - Hadoop
     - shell
     - 监控
+    
 ---
+
 
 > 在编写集群脚本之前，先回顾下 `shell` 知识点
 
