@@ -1,6 +1,7 @@
 ---
 layout:     post
 title:      Hadoop 集群脚本
+subtitle:   shell
 date:       2019-08-22
 author:     danner
 header-img: img/post-bg-ios9-web.jpg
