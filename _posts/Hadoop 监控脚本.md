@@ -7,7 +7,7 @@ author:     danner
 header-img: img/post-bg-ios9-web.jpg
 catalog: true
 tags:
-    - big data
+    - 大数据
     - Hadoop
     - shell
     - 监控
@@ -21,9 +21,9 @@ tags:
 
 创建 `wc.sh`，并在文件写入以下内容：
 
-> \#!/bin/bash
+	\#!/bin/bash
 
-> echo "hello shell"
+	echo "hello shell"
 
 解释下上面两行代码：
 
@@ -31,18 +31,19 @@ tags:
 - 第二行是 `shell` 具体要执行的脚本，输出 `hello shell`。
 
 保存好文件内容后，增加**执行权限** `chmod u+x wc.sh` 后执行 `./wc.sh`,输出如下：
-> hello shell
+
+	hello shell
 
 当然你也可以在首行加 `-x` 表示 `debug` 模式，会输出调试信息，整个文件内容:
 
-> \#!/bin/bash -x
-> 
-> echo "hello shell"
+	#!/bin/bash -x
+
+	echo "hello shell"
 
 执行后输出
 
-> \+ echo 'hello shell' 
-> hello shell
+	+ echo 'hello shell' 
+	hello shell
 
 增加了调试信息 `+ echo 'hello shell' `，代表执行 `echo 'hello shell' ` 语句
 
@@ -51,23 +52,23 @@ tags:
 
 创建 `variable.sh`，输入以下内容：
 
-> \#!/bin/bash 
->
-> hello='hello'
-> date1='date1'
-> date2=\`date\`
-> word=word
-> 
->echo $hello
->echo ${date1}
->echo ${date2}
->echo $word
+	#!/bin/bash 
+	
+	hello='hello'
+	date1='date1'
+	date2=\`date\` 
+	word=word
+	
+	echo $hello
+	echo ${date1}
+	echo ${date2}
+	echo $word
 
 执行输出：
 
-> hello
-> date1
-> Thu Aug 22 23:10:34 CST 2019
+	hello
+	date1
+	Thu Aug 22 23:10:34 CST 2019
 
 关于变量，有几个知识点：
 
