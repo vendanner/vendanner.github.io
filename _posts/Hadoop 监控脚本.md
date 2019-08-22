@@ -41,7 +41,6 @@ tags:
 执行后输出
 
 > \+ echo 'hello shell' 
-
 > hello shell
 
 增加了调试信息 `+ echo 'hello shell' `，代表执行 `echo 'hello shell' ` 语句
@@ -54,27 +53,19 @@ tags:
 > \#!/bin/bash 
 >
 > hello='hello'
-
 > date1='date1'
-
 > date2=\`date\`
-
 > word=word
 > 
 >echo $hello
->
 >echo ${date1}
->
 >echo ${date2}
-
 >echo $word
 
 执行输出：
 
 > hello
-
 > date1
-
 > Thu Aug 22 23:10:34 CST 2019
 
 关于变量，有几个知识点：
