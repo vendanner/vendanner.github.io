@@ -16,7 +16,7 @@ tags:
 `Hadoop` 中的 `job` 任务包含 `Mapper` 和 `Reducer` 过程；但这只是最简单的划分，为了理清 `job`的执行过程将其划分为：`job` 层、`MR` 层，每层又由很多小部分组成。
 
 
-### `job` 层次
+### `job` 层
 
 `job.waitForCompletion(true)` 是我们提交 `job` 任务代码，从这个切入点出发：
 
@@ -144,7 +144,7 @@ tags:
 	}
 
 
-3.1、检查输出目录
+3.1、检查输出目录(已存在**抛异常**)
 
 	// 继承 OutputFormat 的类，即任务输出类
 	public void checkOutputSpecs(JobContext job
@@ -159,6 +159,7 @@ tags:
     // get delegation token for outDir's file system
     TokenCache.obtainTokensForNamenodes(job.getCredentials(),
         new Path[] { outDir }, job.getConfiguration());
+
 	// 输出目录已存在，"Output directory " + outDir + " already exists" 异常
     if (outDir.getFileSystem(job.getConfiguration()).exists(outDir)) {
       throw new FileAlreadyExistsException("Output directory " + outDir + 
