@@ -172,11 +172,7 @@ export LD_LIBRARY_PATH=/home/hadoop/app/lzo-2.06/compile/lib
 # ok，splits=6，也就是 map 有 6 个task
 ```
 
-
-
-
-
-
+> `lzo` 文件是否支持分别是看有没有对应的 `index` 文件
 
 
 
