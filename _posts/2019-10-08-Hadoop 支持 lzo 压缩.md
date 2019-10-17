@@ -124,6 +124,7 @@ export LD_LIBRARY_PATH=/home/hadoop/app/lzo-2.06/compile/lib
     <property>
         <name>mapred.child.env</name>
         <value>LD_LIBRARY_PATH=/home/hadoop/app/lzo-2.06/compile/lib</value>
+    <property>
 ```
 
 ### 测试
@@ -173,6 +174,12 @@ export LD_LIBRARY_PATH=/home/hadoop/app/lzo-2.06/compile/lib
 ```
 
 > `lzo` 文件是否支持分别是看有没有对应的 `index` 文件
+
+### 总结
+
+- 编译 `LZO`
+- 利用 `LZO` 库文件编译 `hadoop-lzo`
+- `hadoop-lzo` 库文件放到 `hadoop lib` 下并配置 `LZO` 库文件目录到 `hadoop` 环境变量
 
 
 
