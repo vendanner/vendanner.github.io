@@ -133,9 +133,9 @@ spark-submit --class org.apache.spark.examples.SparkPi --master yarn --deploy-mo
 
 > `spark.yarn.archive` 也可以设置在 `spark-defaults.conf` ; `spark.yarn.jars` 相同操作，两者等效
 
-`Conf`
+### `Conf`
 
-看日志可知，每次启动也都上传，它会上传 `SPARK_CONF_DIR` 和 `HADOOP_CONF_DIR`目录下的文件。但此 `Conf` 无法优化，因为就是算是源文件和目标文件在同个文件系统，也会强制移动
+看日志可知，每次启动也都上传，它会上传 `SPARK_CONF_DIR` 和 `HADOOP_CONF_DIR`目录下的文件。但此 `Conf` 无法优化，因为就是算是源文件和目标文件在同个文件系统，也会**强制复制**
 
 ```scala
     // This code forces the archive to be copied, so that unit tests pass (since in that case both
