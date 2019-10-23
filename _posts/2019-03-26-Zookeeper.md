@@ -15,7 +15,7 @@ tags:
 ### 简介
 
 **Zookeeper** 是一个高可用的分布式数据**管理**和**协调**框架，并且能够很好的保证分布式环境中数据的**一致性**。在越来越多的分布式系统（`Hadoop`、`HBase`、`Kafka`）中，`Zookeeper` 都作为核心组件使用。
- 
+
 #### Zookeeper 结构
 
 ![](https://vendanner.github.io/img/hadoop/Zookeeper1.png)
@@ -27,7 +27,7 @@ tags:
 	- 同步 `Leader`  状态
 	- 选 `Leader` 参与投票            
 - Leader：
-	- **事物**请求**唯一**调度者和处理这，保证集群事物处理的**顺序性**
+	- **事物**请求**唯一**调度者和处理者，保证集群事物处理的**顺序性**
 	- 集群内部各服务器的**调度者**
 - Observer：
 
@@ -43,25 +43,25 @@ tags:
  - 处理投票(先比较 `ZXID`，再比较 `myid`)
  - 统一投票(得票数超一半则为 `Leader`)
  - 更改节点状态：`Following`  or `Leader`
- 
+
 ![](https://vendanner.github.io/img/hadoop/Zookeeper2.png)
- 
+
 值得一提的是，成为 `Leader` 条件是得票数出超半，所以存活节点需要满足以下公式：
  > live_node >= total_node/2+1，total_node 一般为奇数
- 
+
 接着来说说处理投票规则(先比较 `ZXID`，再比较 `myid`)。考虑这么一种情况，在运行期间 `Leader` 挂了，此时需要重新选举 `Leader`。
 
 ![](https://vendanner.github.io/img/hadoop/Zookeeper3.png)
 
 之前的 `Leader` 挂了之后，有些 `ZXID` 处理状态没有同步到所有节点。此时先比较 `ZXID` 就很明智：发出 `ZXID` 高的投票当选 `Leader` 后，会先将 `ZXID`  **再次**向所有节点同步保证数据的一致性。
- 
- 
+
+
 ### 配置
- 
+
 #### 配置文件
- 
+
 配置文件在 `zookeeper-3.4.10/conf` 目录下，拷贝一份 `zoo_sample.cfg` 为 `zoo.cfg` 再修改。
- 
+
 	dataDir=/home/hadoop/software/zookeeper-3.4.10/data   // zookeeper 数据存放路径
 	dataLogDir=/home/hadoop/software/zookeeper-3.4.10/logs  // zookeeper 日志存放路径
 	// 节点配置，端口是固定的
@@ -70,7 +70,7 @@ tags:
 	server.3=node02:2888:3888
 	server.4=node03:2888:3888
 	server.5=node04:2888:3888
- 
+
 #### 环境变量
 
 	export ZOOKEEPER_HOME=/home/hadoop/software/zookeeper-3.4.10
