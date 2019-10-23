@@ -103,5 +103,8 @@ friends: [
     },{
         title: "J哥",
         href: "http://blog.itpub.net/30089851/"
+    },{
+        title: "Golang 编程",
+        href: "https://draveness.me/#"
     }
 ]
