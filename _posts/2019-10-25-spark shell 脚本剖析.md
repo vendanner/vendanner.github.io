@@ -293,4 +293,4 @@ spark-shell
 
 以一副流程图来梳理下 spark-shell 的执行步骤
 
-![](spark-shell-process.png)
+![](https://vendanner.github.io/img/Spark/spark-shell-process.png)
