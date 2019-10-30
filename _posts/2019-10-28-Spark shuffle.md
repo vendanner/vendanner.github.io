@@ -43,6 +43,20 @@ Spark 最初的版本就是 `HashShuffle`，勉强能用但有很多缺点。在
 
 如上图所示，每个 `mapTask` 只产生2个文件：`data`、`index`
 
+### 参数
+
+Spark 的 shuffle 演变之路我们已经看过了，下面来看看 shuffle 过程中那些参数可以调整
+
+- `spark.shuffle.manager`：指定shuffle 类型：hash、Consolidated、sort
+- `spark.shuffle.file.buffer`： shuffle 时可占用内存大小，默认 `32kb`，可适当翻倍
+- ` spark.reducer.maxSizeInFlight `：shuffle 时 reduce 端拉取数据可占用内存大小，默认 `48M`，可适当翻倍
+- ` spark.shuffle.io.maxRetries `：shuffle 获取数据失败重试次数，默认 3次
+- ` spark.shuffle.io.retryWait `：shuffle 获取数据失败后设定延迟几秒再获取，默认5s ；可得数据获取失败响应时间是 3 *5 s = 15 s
+- ` spark.shuffle.sort.bypassMergeThreshold `：`sorthash` 模式才能使用，设定reducer 端超过几个任务就自动归并排序；显然大多数情况是多余操作(要归并排序作业会指定)，考虑增大该值
+- ` spark.shuffle.spill.compress `：shuffle 的落盘文件是否压缩，` spark.io.compression.codec ` 指定压缩方法 
+- `spark.io.compression.codec`：spark 作业过程中指定的压缩方法： `lz4`, `lzf`, `snappy`, and `zstd` 
+- ` spark.shuffle.compress `：map 输出是否压缩，` spark.io.compression.codec ` 指定压缩方法 
+
 ### 总结
 
 ![](https://vendanner.github.io/img/Spark/all_shuffle.png)
