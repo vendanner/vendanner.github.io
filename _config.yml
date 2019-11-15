@@ -106,5 +106,8 @@ friends: [
     },{
         title: "Golang 编程",
         href: "https://draveness.me/#"
+    },{
+        title: "华校专-机器学习",
+        href: "http://www.huaxiaozhuan.com/"
     }
 ]
