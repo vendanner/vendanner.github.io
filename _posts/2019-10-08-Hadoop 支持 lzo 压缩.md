@@ -110,7 +110,7 @@ export LD_LIBRARY_PATH=/home/hadoop/app/lzo-2.06/compile/lib
 ```
 
 ```xml
-<!-- mapreduce-site.xml 加下面配置 --> 
+<!-- mapre-site.xml 加下面配置 --> 
     <property>
         <name>mapred.compress.map.output</name>
         <value>true</value>
