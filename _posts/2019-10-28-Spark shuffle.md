@@ -21,7 +21,7 @@ tags:
 
 ![](https://vendanner.github.io/img/Spark/shuffle_define.png)
 
-确认好什么时候后会发送 shuffle 后，来看看 Spark shuffle  的演变之路
+确认好什么时候后会发送 shuffle 后，来看看 Spark shuffle  的演变之路 ：` SparkEnv `
 
 ### `HashShuffle`
 
