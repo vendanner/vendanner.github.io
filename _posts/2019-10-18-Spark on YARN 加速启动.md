@@ -33,6 +33,7 @@ tags:
 既然知道是哪个属性的原因，那我们就从源码里看看如何设置
 
 ```scala
+// org.apache.spark.deploy.yarn.Client
 private def createContainerLaunchContext {
     ... 
     val appStagingDirPath = new Path(appStagingBaseDir, getAppStagingDir(appId))
