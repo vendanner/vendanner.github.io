@@ -2,7 +2,7 @@
 layout:     post
 title:      Hadoop 支持 lzo 压缩
 subtitle:   
-date:       2019-10-08
+date:       2018-07-08
 author:     danner
 header-img: img/post-bg-ios9-web.jpg
 catalog: true

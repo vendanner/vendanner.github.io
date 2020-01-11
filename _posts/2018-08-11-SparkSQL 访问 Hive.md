@@ -2,7 +2,7 @@
 layout:     post
 title:      SparkSQL 访问 Hive
 subtitle:   SQL
-date:       2019-10-11
+date:       2018-08-11
 author:     danner
 header-img: img/post-bg-ios9-web.jpg
 catalog: true
