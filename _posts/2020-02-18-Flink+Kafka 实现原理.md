@@ -65,7 +65,7 @@ public interface CheckpointListener {
 
 整体执行流程如下：
 
-![](https://vendanner.github.io/img/Flink/Checkpoint_2PC.img)
+![](https://vendanner.github.io/img/Flink/Checkpoint_2PC.png)
 
 由上可知，一次 checkpoint 才会发送写一次数据，这一定程度会导致**数据延迟**，需要合理设置 checkpoint 间隔(太短频繁 checkpoint 压力打，太长数据延迟严重)。
 
