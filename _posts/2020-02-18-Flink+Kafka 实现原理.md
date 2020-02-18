@@ -53,7 +53,7 @@ public abstract class TwoPhaseCommitSinkFunction<IN, TXN, CONTEXT>
 public interface CheckpointedFunction {
     // checkpoint 时执行
     void snapshotState(FunctionSnapshotContext context) throws Exception;
-    // rich function 初始化 调用
+    // rich function open函数之前 调用
     void initializeState(FunctionInitializationContext context) throws Exception;
 }
 
