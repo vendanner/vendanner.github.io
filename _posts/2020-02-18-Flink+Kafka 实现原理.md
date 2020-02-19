@@ -54,6 +54,12 @@ public interface CheckpointedFunction {
     // checkpoint 时执行
     void snapshotState(FunctionSnapshotContext context) throws Exception;
     // rich function open函数之前 调用
+    /**
+    * StreamTask.java
+    * public final void invoke() {
+    * 	initializeState();
+	*	openAllOperators();
+    */
     void initializeState(FunctionInitializationContext context) throws Exception;
 }
 
