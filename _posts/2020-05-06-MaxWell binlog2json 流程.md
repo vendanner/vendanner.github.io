@@ -23,3 +23,4 @@ MaxWell 中，Binlog2json 流程是**单线程**(main thread)执行。整个执�
 
 - DDL 语句：业务表结构发生变化后，下游大数据如何感知？在 **SQL 解析**部分添加代码
 - 时间序列：若业务的 lastupdate 字段和binlog postion 值都无法**验证** sql 语句的先后执行顺序，可在构造json 时添加 `index` 来保障 sql语句 的先后关系(单线程)。
+- ColumnDef 类是 maxwell 解析 MySQL 数据类型
