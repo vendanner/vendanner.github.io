@@ -361,20 +361,19 @@ MiniCluster 启动一堆服务
 ```java
 // org.apache.flink.runtime.minicluster.MiniCluster
 public CompletableFuture<JobSubmissionResult> submitJob(JobGraph jobGraph) {
-		final CompletableFuture<DispatcherGateway> dispatcherGatewayFuture = getDispatcherGatewayFuture();
-		final CompletableFuture<InetSocketAddress> blobServerAddressFuture = createBlobServerAddress(dispatcherGatewayFuture);
+	final CompletableFuture<DispatcherGateway> dispatcherGatewayFuture = getDispatcherGatewayFuture();
+	final CompletableFuture<InetSocketAddress> blobServerAddressFuture = createBlobServerAddress(dispatcherGatewayFuture);
   // 上传任务所需文件和 jobGraph
-		final CompletableFuture<Void> jarUploadFuture = uploadAndSetJobFiles(blobServerAddressFuture, jobGraph);
+	final CompletableFuture<Void> jarUploadFuture = uploadAndSetJobFiles(blobServerAddressFuture, jobGraph);
   // job 提交到调度器
-		final CompletableFuture<Acknowledge> acknowledgeCompletableFuture = jarUploadFuture
-			.thenCombine(
-				dispatcherGatewayFuture,
-				(Void ack, DispatcherGateway dispatcherGateway) -> 
+    final CompletableFuture<Acknowledge> acknowledgeCompletableFuture = jarUploadFuture
+      .thenCombine(
+      dispatcherGatewayFuture,
+      (Void ack, DispatcherGateway dispatcherGateway) -> 
       // dispatcher 提交任务
       dispatcherGateway.submitJob(jobGraph, rpcTimeout))
-			.thenCompose(Function.identity());
-  
-		return acknowledgeCompletableFuture.thenApply(
+      .thenCompose(Function.identity());
+  	return acknowledgeCompletableFuture.thenApply(
 			(Acknowledge ignored) -> new JobSubmissionResult(jobGraph.getJobID()));
 	}
 // org.apache.flink.runtime.dispatcher
@@ -382,13 +381,13 @@ public CompletableFuture<JobSubmissionResult> submitJob(JobGraph jobGraph) {
 	private CompletableFuture<Void> persistAndRunJob(JobGraph jobGraph) throws Exception {
     // 记录 jobGraph ，并 run
 		jobGraphWriter.putJobGraph(jobGraph);
-		final CompletableFuture<Void> runJobFuture = runJob(jobGraph);
-		return runJobFuture.whenComplete(BiConsumerWithException.unchecked((Object ignored, Throwable throwable) -> {
-			if (throwable != null) {
-				jobGraphWriter.removeJobGraph(jobGraph.getJobID());
-			}
-		}));
-	}
+    final CompletableFuture<Void> runJobFuture = runJob(jobGraph);
+    return runJobFuture.whenComplete(BiConsumerWithException.unchecked((Object ignored, Throwable throwable) -> {
+      if (throwable != null) {
+        jobGraphWriter.removeJobGraph(jobGraph.getJobID());
+      }
+    }));
+  }
 	private CompletableFuture<Void> runJob(JobGraph jobGraph) {
 		Preconditions.checkState(!jobManagerRunnerFutures.containsKey(jobGraph.getJobID()));
 		// jobManagerRunner
