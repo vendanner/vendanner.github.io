@@ -114,3 +114,5 @@ tms_company  order_cnt
 [应用案例 | Blink 有何特别之处？菜鸟供应链场景最佳实践](应用案例 | Blink 有何特别之处？菜鸟供应链场景最佳实践)
 
 [Flink实战系列之自定义RetractStreamTableSink](https://mp.weixin.qq.com/s?__biz=MzU5MTc1NDUyOA==&mid=2247483877&idx=1&sn=c722beb68ae27e3d1ae757c68a6842cc&chksm=fe2b65aac95cecbc278412a50495fc101d7cfecdbe15d7f6a3e04a5dc184dba87a983789949b&token=1090913763&lang=zh_CN#rd)
+
+[【Flink】流-表概念](https://www.cnblogs.com/leesf456/p/8027772.html)
