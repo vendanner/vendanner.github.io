@@ -136,14 +136,14 @@ protected void run(String[] args) throws Exception {
     final Options commandLineOptions = CliFrontendParser.mergeOptions(commandOptions, customCommandLineOptions);
     final CommandLine commandLine = CliFrontendParser.parse(commandLineOptions, args, true);
     final ProgramOptions programOptions = new ProgramOptions(commandLine);
-	...
+    ...
     // 封装任务包：jar，mainclass，usejar ...
     final PackagedProgram program;
     try {
         LOG.info("Building program from JAR file");
         program = buildProgram(programOptions);
     }
-	...
+    ...
     final List<URL> jobJars = program.getJobJarAndDependencies();
     final Configuration effectiveConfiguration =
             getEffectiveConfiguration(commandLine, programOptions, jobJars);
@@ -155,6 +155,14 @@ protected void run(String[] args) throws Exception {
     } finally {
         program.deleteExtractedLibraries();
     }
+ }
+// DefaultExecutorServiceLoader
+protected void executeProgram(final Configuration configuration, final PackagedProgram program) throws ProgramInvocationException {
+    ClientUtils.executeProgram(DefaultExecutorServiceLoader.INSTANCE, configuration, program);
 }
 ```
+
+
+
+
 
