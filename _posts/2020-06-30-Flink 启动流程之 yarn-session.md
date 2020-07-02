@@ -150,8 +150,8 @@ private static final ServiceLoader<ClusterClientFactory> defaultLoader = Service
 	public <ClusterID> ClusterClientFactory<ClusterID> getClusterClientFactory(final Configuration configuration) {
 		checkNotNull(configuration);
 
-		final List<ClusterClientFactory> compatibleFactories = new ArrayList<>();
-		final Iterator<ClusterClientFactory> factories = defaultLoader.iterator();
+	final List<ClusterClientFactory> compatibleFactories = new ArrayList<>();
+	final Iterator<ClusterClientFactory> factories = defaultLoader.iterator();
 		while (factories.hasNext()) {
 			try {
 				final ClusterClientFactory factory = factories.next();
