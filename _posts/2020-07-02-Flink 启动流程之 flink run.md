@@ -82,11 +82,7 @@ public static List<CustomCommandLine> loadCustomCommandLines(Configuration confi
 }
 ```
 
-先不解释这里的 `Commandlines` 作用，后面介绍
 
-- `FlinkYarnSessionCli`
-- `ExecutorCLI`
-- `DefaultCLI`
 
 ```java
 public int parseParameters(String[] args) {
@@ -137,7 +133,7 @@ protected void run(String[] args) throws Exception {
     final CommandLine commandLine = CliFrontendParser.parse(commandLineOptions, args, true);
     final ProgramOptions programOptions = new ProgramOptions(commandLine);
     ...
-    // 封装任务包：jar，mainclass，usejar ...
+    // 封装任务包：jar，mainclass，usejar ...;后面有大用
     final PackagedProgram program;
     try {
         LOG.info("Building program from JAR file");
@@ -163,6 +159,59 @@ protected void executeProgram(final Configuration configuration, final PackagedP
 ```
 
 
+
+```java
+protected void executeProgram(final Configuration configuration, final PackagedProgram program) throws ProgramInvocationException {
+  ClientUtils.executeProgram(DefaultExecutorServiceLoader.INSTANCE, configuration, program);
+}
+
+// org.apache.flink.client.ClientUtils
+public static void executeProgram(
+  PipelineExecutorServiceLoader executorServiceLoader,
+  Configuration configuration,
+  PackagedProgram program) throws ProgramInvocationException {
+  checkNotNull(executorServiceLoader);
+  final ClassLoader userCodeClassLoader = program.getUserCodeClassLoader();
+  final ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
+  try {
+    Thread.currentThread().setContextClassLoader(userCodeClassLoader);
+
+    LOG.info("Starting program (detached: {})", !configuration.getBoolean(DeploymentOptions.ATTACHED));
+
+    ContextEnvironmentFactory factory = new ContextEnvironmentFactory(
+      executorServiceLoader,
+      configuration,
+      userCodeClassLoader);
+    ContextEnvironment.setAsContext(factory);
+
+    try {
+      // 执行用户代码
+      program.invokeInteractiveModeForExecution();
+    } 
+    ...
+}
+// org.apache.flink.client.program.PackagedProgram
+public void invokeInteractiveModeForExecution() throws ProgramInvocationException {
+  callMainMethod(mainClass, args);
+}
+private static void callMainMethod(Class<?> entryClass, String[] args) throws ProgramInvocationException {
+    Method mainMethod;
+    if (!Modifier.isPublic(entryClass.getModifiers())) {
+        throw new ProgramInvocationException("The class " + entryClass.getName() + " must be public.");
+    }
+
+    try {
+        mainMethod = entryClass.getMethod("main", String[].class);
+    } 
+    ...
+    try {
+        mainMethod.invoke(null, (Object) args);
+    } 
+    ...
+}
+```
+
+封装 Config，直接跑用户代码，相关介绍看 [深入剖析 Flink Straming WC流程]([https://vendanner.github.io/2020/05/26/%E6%B7%B1%E5%85%A5%E5%89%96%E6%9E%90-Flink-Straming-WC%E6%B5%81%E7%A8%8B/](https://vendanner.github.io/2020/05/26/深入剖析-Flink-Straming-WC流程/))，下节将整个启动流程串起来。
 
 
 
