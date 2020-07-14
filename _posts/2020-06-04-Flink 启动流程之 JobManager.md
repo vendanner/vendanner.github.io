@@ -430,7 +430,7 @@ public DispatcherResourceManagerComponent create(
       fatalErrorHandler,
       historyServerArchivist,
       metricRegistry.getMetricQueryServiceGatewayRpcAddress());
-    // 调度器启动
+    // 调度器启动 加载 jobGraph
     log.debug("Starting Dispatcher.");
     dispatcherRunner = dispatcherRunnerFactory.createDispatcherRunner(
       highAvailabilityServices.getDispatcherLeaderElectionService(),
