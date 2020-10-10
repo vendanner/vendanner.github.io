@@ -23,7 +23,7 @@ Flink 状态后端有三种：
 Flink Web-UI 上的报错信息
 
 ```shell
-org.apache.flink.runtime.io.network.netty.exception.RemoteTransportException: Connection unexpectedly closed by remote task manager 'HZPL004128109/10.4.128.109:2899'. This might indicate that the remote task manager was lost.
+org.apache.flink.runtime.io.network.netty.exception.RemoteTransportException: Connection unexpectedly closed by remote task manager 'ip:2899'. This might indicate that the remote task manager was lost.
 	at org.apache.flink.runtime.io.network.netty.CreditBasedPartitionRequestClientHandler.channelInactive(CreditBasedPartitionRequestClientHandler.java:136)
 	at org.apache.flink.shaded.netty4.io.netty.channel.AbstractChannelHandlerContext.invokeChannelInactive(AbstractChannelHandlerContext.java:257)
 	at org.apache.flink.shaded.netty4.io.netty.channel.AbstractChannelHandlerContext.invokeChannelInactive(AbstractChannelHandlerContext.java:243)
@@ -41,11 +41,11 @@ Killing container
 
 结合上面的日志，我们可以得出结论：Flink TM 上的物理内存超了，Yarn 就将对应的Container kill ，这样 Flink 程序就找不到 TM 导致 task 失败。
 
-结合 [Flink 内存管理](https://vendanner.github.io/2020/08/25/Flink-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/) 可知，状态管理内存是在堆外内存，至此我们猜想大概率是 RocksDB 导致 `task` 失败。
+结合 [Flink 内存管理](https://vendanner.github.io/2020/08/25/Flink-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/) 可知，状态管理内存是堆外内存，至此我们猜想大概率是 RocksDB 导致 `task` 失败。
 
 ### 参数
 
-既然知道是 RocksDB 的锅，那我们就需要调调参数。以下内容摘抄参考资料二
+既然知道是 RocksDB 的锅，那我们就需要调调参数(以下内容摘抄[参考资料二](https://www.jianshu.com/p/b337b693fb8d))。
 
 #### Tuning MemTable
 
@@ -87,7 +87,7 @@ compaction算法，使用默认的LEVEL（即 leveled compaction）即可，下�
 
 L1层单个sstable文件的大小阈值，默认值为64MB。每向上提升一级，阈值会乘以因子`target_file_size_multiplier`（但默认为1，即每级 sstable 最大都是相同的）。显然，增大此值可以降低compaction 的频率，减少写放大，但是也会造成旧数据无法及时清理，从而增加读放大。此参数不太容易调整，一般不建议设为 256MB 以上。
 
-- `max_bytes_for_level_base` | `state.backend.rocksdb.compaction.level.max-size-level-base`
+- `max_bytes_for_level_base`  |  `state.backend.rocksdb.compaction.level.max-size-level-base`
 
 L1层的数据总大小阈值，默认值为 256MB。每向上提升一级，阈值会乘以因子`max_bytes_for_level_multiplier`（默认值为10 ）。由于上层的大小阈值都是以它为基础推算出来的，所以要小心调整。建议设为`target_file_size_base`的倍数，且不能太小，例如 5~10 倍。
 
@@ -105,7 +105,7 @@ L1层的数据总大小阈值，默认值为 256MB。每向上提升一级，阈
 
 后台负责 flush 和 compaction 的最大并发线程数，默认为1。注意Flink将这两个参数合二为一处理（对应DBOptions.setIncreaseParallelism()方法 ），鉴于 flush 和 compaction 都是相对重的操作，如果 CPU 余量比较充足，建议调大，在我们的实践中一般设为4。
 
-最后总结如下，如果需要了解更详细内容请看参考资料三
+最后总结如下，如果需要了解更详细内容请看[参考资料三](https://cloud.tencent.com/developer/article/1592441)
 
 ![](https://vendanner.github.io/img/Flink/Flink_RocksDB_Param.png)
 
@@ -114,7 +114,9 @@ L1层的数据总大小阈值，默认值为 256MB。每向上提升一级，阈
 针对本例，我们调整以下参数
 
 > state.backend.rocksdb.thread.num=4
+>
 > taskmanager.memory.managed.fraction=0.6
+>
 > taskmanager.network.netty.server.numThreads=2 
 
 针对 RocksDB，我们调大状态内存比例(增大内存)并增加 flush 和 compaction 的线程数。
