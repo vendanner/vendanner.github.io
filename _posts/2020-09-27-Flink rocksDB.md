@@ -51,7 +51,7 @@ Killing container
 
 memtable 作为 LSM Tree 体系里的读写缓存，对写性能有较大的影响。以下是一些值得注意的参数。为方便对比，下文都会将 RocksDB 的原始参数名与 Flink 配置中的参数名一并列出，用竖线分割。
 
-- `write_buffer_size` | `state.backend.rocksdb.writebuffer.size`
+- `write_buffer_size`  \|  `state.backend.rocksdb.writebuffer.size`
 
 单个 memtable 的大小，默认是 64MB。当 memtable 大小达到此阈值时，就会被标记为不可变。一般来讲，适当增大这个参数可以减小写放大带来的影响，但同时会增大 flush 后 L0、L1 层的压力，所以还需要配合修改 compaction 参数，后面再提。
 
