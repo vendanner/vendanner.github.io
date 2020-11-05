@@ -132,3 +132,5 @@ L1层的数据总大小阈值，默认值为 256MB。每向上提升一级，阈
 [Flink on RocksDB 参数调优指南](https://cloud.tencent.com/developer/article/1592441)
 
 [flink 1.10 on yarn 内存超用，被kill](http://apache-flink.147419.n8.nabble.com/flink-1-10-on-yarn-kill-td4059.html)
+
+[【Flink 精选】如何优化大状态作业](https://mp.weixin.qq.com/s/f-Y_R0vMDX3AGB--6yijmg)
