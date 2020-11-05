@@ -127,7 +127,7 @@ public StreamGraph getStreamGraph(String jobName, boolean clearTransformations) 
 }
 ```
 
-本文不介绍 StreamGraph 生成过程，后文会详细阐述。
+本文不介绍 StreamGraph 生成过程，后文会详细[阐述](https://vendanner.github.io/2020/07/22/Flink-%E6%BA%90%E7%A0%81%E4%B9%8B%E6%9E%84%E5%BB%BA-StreamGraph/)。
 
 #### JobGraph
 
