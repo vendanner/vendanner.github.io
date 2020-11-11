@@ -302,7 +302,7 @@ protected void initializeServices(Configuration configuration) throws Exception 
 
 #### 启动服务
 
-`DispatcherResourceManagerComponentFactory` 是抽象类，不同集群运行执行不同的方法。本例是 ` StandaloneSession`，注意观察传进去的 `ResourceManagerFactory`
+`DispatcherResourceManagerComponentFactory` 是抽象类，不同集群运行执行不同的方法。本例是 ` StandaloneSession` ，注意观察传进去的 `ResourceManagerFactory`
 
 ```java
 // org.apache.flink.runtime.entrypoint.StandaloneSessionClusterEntrypoint
@@ -468,6 +468,6 @@ public DispatcherResourceManagerComponent create(
 
 ## 参考资料
 
-[数仓系列 | 深入解读 Flink 资源管理机制](https://developer.aliyun.com/article/765297?spm=a2c6h.13262185.0.0.4f2a3e80Xc3ask)
+[数仓\| 深入解读 Flink 资源管理机制](https://developer.aliyun.com/article/765297?spm=a2c6h.13262185.0.0.4f2a3e80Xc3ask)
 
 [kerberos体系下的应用(yarn,spark on yarn)](https://www.jianshu.com/p/ae5a3f39a9af)
