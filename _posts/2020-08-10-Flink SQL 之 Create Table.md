@@ -176,9 +176,9 @@ private boolean hasNextService() {
   }
   if (configs == null) {
       try {
-          // PREFIX = META-INF.services/
+          // PREFIX = META-INF/services/
           // service.getName() 为TableFactory的全路径名 = org.apache.flink.table.factories.TableFactory
-          // META-INF.services/org.apache.flink.table.factories.TableFactor 文件
+          // META-INF/services/org.apache.flink.table.factories.TableFactor 文件
           String fullName = PREFIX + service.getName();
           // 使用 classloader 加载所有 jar 中 resource 的 fullName 文件
           if (loader == null)
@@ -204,7 +204,7 @@ private boolean hasNextService() {
 private S nextService() {
   if (!hasNextService())
       throw new NoSuchElementException();
-  // nextName = META-INF.services/org.apache.flink.table.factories.TableFactor 文件中一行的内容
+  // nextName = META-INF/services/org.apache.flink.table.factories.TableFactor 文件中一行的内容
   String cn = nextName;
   nextName = null;
   Class<?> c = null;
@@ -378,7 +378,7 @@ public DataStreamSink<?> consumeDataStream(DataStream<Tuple2<Boolean, Row>> data
 - 将 KafkaValidator、KafkaTableSink、KafkaTableSinkBase、KafkaTableSourceSinkFactory、KafkaTableSourceSinkFactoryBase 代码复制并修改为自定义的类名
 - KafkaTableSourceSinkFactoryBase `requiredContext` 函数将 `connector.type` 改成自定义的类型，后续使用时指定
 - KafkaTableSinkBase 的 `consumeDataStream` 改成上面的函数，以支持回撤流
-- 在工程的 Resource 目录下创建 /META-INF/services/org.apache.flink.table.factories.TableFactor 文件，并写入刚刚自定义的 KafkaTableSourceSinkFactory；此处是注册
+- 在工程的 Resource 目录下创建 META-INF/services/org.apache.flink.table.factories.TableFactor 文件，并写入刚刚自定义的 KafkaTableSourceSinkFactory；此处是注册
 
 
 
