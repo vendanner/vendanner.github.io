@@ -12,7 +12,7 @@ tags:
     - Table
 ---
 
-基于 1.11
+基于 1.10
 
 在 Flink SQL 中，我们可以很简单的定义 `Source` 和 `Sink`。如下所示
 
@@ -315,25 +315,7 @@ private static <T extends TableFactory> List<T> filterBySupportedProperties(
     }
   }
   // 没找到合适的 TableFactory，输出报错信息
-  if (supportedFactories.isEmpty()) {
-    String bestMatchedMessage = null;
-    if (bestMatched != null) {
-      bestMatchedMessage = String.format(
-          "%s\nUnsupported property keys:\n%s",
-          bestMatched.f0.getClass().getName(),
-          String.join("\n", bestMatched.f1)
-      );
-    }
-
-    //noinspection unchecked
-    throw new NoMatchingTableFactoryException(
-      "No factory supports all properties.",
-      bestMatchedMessage,
-      factoryClass,
-      (List<TableFactory>) classFactories,
-      properties);
-  }
-
+  ...
   return supportedFactories;
 }
 
