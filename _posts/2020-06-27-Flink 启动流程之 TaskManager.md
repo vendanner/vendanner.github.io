@@ -403,4 +403,4 @@ FileCache(String[] tempDirectories, PermanentBlobService blobService,
 
 ## 参考资料
 
-[Flink 源码阅读笔记（5）- 集群启动流程]([https://blog.jrwang.me/2019/flink-source-code-bootstarp/#taskmanager-%E7%9A%84%E5%90%AF%E5%8A%A8](https://blog.jrwang.me/2019/flink-source-code-bootstarp/#taskmanager-的启动))
+[Flink 源码阅读笔记（5）- 集群启动流程](https://blog.jrwang.me/2019/flink-source-code-bootstarp/#taskmanager-的启动)
