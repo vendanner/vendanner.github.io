@@ -60,6 +60,34 @@ CREATE TABLE pvuv_sink (
 sql 创建一个 table ，底层会通过 `TableFactoryService` 根据创建时的属性寻找匹配 SourceSink 。
 
 ```java
+// org.apache.flink.table.factories.TableFactoryUtil
+public static <T> TableSink<T> findAndCreateTableSink(
+    @Nullable Catalog catalog,
+    ObjectIdentifier objectIdentifier,
+    CatalogTable catalogTable,
+    ReadableConfig configuration,
+    boolean isStreamingMode) {
+  TableSinkFactory.Context context = new TableSinkFactoryContextImpl(
+    objectIdentifier,
+    catalogTable,
+    configuration,
+    !isStreamingMode);
+  if (catalog == null) {
+    return findAndCreateTableSink(context);
+  } else {
+    return createTableSinkForCatalogTable(catalog, context)
+      .orElseGet(() -> findAndCreateTableSink(context));
+  }
+}
+public static <T> TableSink<T> findAndCreateTableSink(TableSinkFactory.Context context) {
+  try {
+    return TableFactoryService
+        .find(TableSinkFactory.class, context.getTable().toProperties())
+        .createTableSink(context);
+  } catch (Throwable t) {
+    throw new TableException("findAndCreateTableSink failed.", t);
+  }
+}
 // org.apache.flink.table.factories.TableFactoryService
 /**
   * Finds a table factory of the given class and property map.
