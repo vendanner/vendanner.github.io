@@ -115,9 +115,13 @@ L1层的数据总大小阈值，默认值为 256MB。每向上提升一级，阈
 
 > state.backend.rocksdb.thread.num=4
 >
-> taskmanager.memory.managed.fraction=0.6
+> taskmanager.memory.managed.fraction=0.4
 >
 > taskmanager.network.netty.server.numThreads=2 
+>
+> taskmanager.memory.jvm-overhead.fraction=0.2
+>
+> taskmanager.memory.jvm-overhead.max=2GB
 
 针对 RocksDB，我们调大状态内存比例(增大内存)并增加 flush 和 compaction 的线程数。
 
