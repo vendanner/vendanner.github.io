@@ -57,7 +57,7 @@ CREATE TABLE pvuv_sink (
 
 #### 加载
 
-sql 创建一个 table ，底层会通过 `TableFactoryService` 根据创建时的属性寻找匹配 SourceSink 。
+sql 创建一个 table ，后续使用表时底层会通过 `TableFactoryService` 根据创建时的属性寻找匹配 SourceSink 。
 
 ```java
 // org.apache.flink.table.factories.TableFactoryUtil
