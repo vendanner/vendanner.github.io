@@ -166,7 +166,7 @@ public void createFunction(ObjectPath functionPath, CatalogFunction function, bo
 
 ![](https://vendanner.github.io/img/Flink/CatalogBaseTable.jpg)
 
-- `CatalogTableImpl/CatalogViewImpl`：真是存在外部数据源的表
+- `CatalogTableImpl/CatalogViewImpl`：真实存在外部数据源的表
 
 ```java
 // org.apache.flink.table.catalog.hive.HiveCatalog
