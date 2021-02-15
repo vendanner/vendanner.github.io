@@ -143,6 +143,7 @@ public TriggerResult onElement(
         return TriggerResult.FIRE;
     } else {
         // 为窗口的结束时间注册定时器，到时间后进行窗口的计算
+        // 注册时携带了 key 和 Window 信息，这样才回调时才知道是哪个 Window
         ctx.registerEventTimeTimer(window.maxTimestamp());
         return TriggerResult.CONTINUE;
     }
@@ -298,6 +299,7 @@ public void processElement(StreamRecord<IN> element) throws Exception {
             // 此时相当于是来一个 element 计算一次，但不会向后发送
             windowState.add(element.getValue());
             // 调用触发器，默认 EventTimeTrigger
+            // 传入 key 和 window，在回调时使用
             triggerContext.key = key;
             triggerContext.window = window;
             TriggerResult triggerResult = triggerContext.onElement(element);
