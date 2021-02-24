@@ -14,9 +14,9 @@ tags:
 
 本节深入源码去理解 Flink + Kafka 实现 **Exactly Once** ( **At Least Once** 只是 barrier 无需对齐)的原理。相对于 Spark 而言， Flink 的 `state` 是很大亮点。Flink 可以将算子的**每一步**状态都记录下来，然后通过 checkpoint  持久化。当程序异常退出或者升级时，可以通 checkpoint 恢复到以前的状态继续运行。这里可以简单的介绍 checkpoint 运行机制([Apache Flink 进阶教程（三）：Checkpoint 的应用实践]( https://ververica.cn/developers/advanced-tutorial-2-checkpoint-application-practice/ ))：
 
-- JobManager 中的 Checkpoint Coordinator 向所有 Source 发送trigger Checkpoint
+- JobManager 中的 Checkpoint Coordinator 向所有 Source 发送 trigger Checkpoint
 - Source 向下游 task 广播 barrier
-- 下游 task 算子当前 event 执行结束后**先暂停**，接着将 barrier 继续向下游传递，然后将 state 备份将地址( **state handle**) 通知到给 Checkpoint Coordinator，最后继续处理下一个 event 的
+- 下游 task 算子当前 event 执行结束后**先暂停**，接着**先将 barrier 继续向下游传递**，然后将 state 备份将地址( **state handle**) 通知到给 Checkpoint Coordinator，最后继续处理下一个 event 的
 - Sink 节点也会保存 state ，并将地址通知给 Checkpoint Coordinator
 - 当 Checkpoint Coordinator 集齐所有 task 的 task handle之后，会整合成 completed Checkpoint Meta 并持久化到后端(Memery、FS、Rocksdb)。至此，一个 barrier 的 checkpoint 完成。
 
@@ -26,7 +26,7 @@ Checkpoint 机制保证在算子运算过程中实现 **Exactly Once**，那 Sou
 
 以 Kafka Sink 为例，介绍 Flink 的实现方式。数据输出时需要保证每个数据都成功，但在分布式环境中每个 task 只能感知自身。由此引出协调者，可以去感知所有 task 状态并决定后续如何处理。Flink 实现的是 `Two-Phase Commit`协议：
 
-- 所有task 向协调者发送 preCommit 结果；
+- 所有 task 向协调者发送 preCommit 结果；
 - 协调者确认**所有** task 结果都成功才向 task 发送 `commit`，否则发送**回滚操作**。
 
 Flink 的 `TwoPhaseCommitSinkFunction`  是基于上述的二阶段提交实现。
@@ -147,7 +147,7 @@ public class FlinkKafkaProducer<IN>
 
 以上机制保证 Flink -> Kafka 所有 task 都能正常走到 commit，但若是在 commit 时有些 task 出现异常呢？
 
-期间如果出现其中某个并行度出现故障，JobManager 会停止此任务，向所有的实例发送通知，各实例收到通知后，调用 close 方法，关闭 Kafka 事务 Producer。 checkpoint 会将 Commit 的事务保存在状态里 ，重启时没有commit 成功的继续 commit。
+> Commit 期间如果出现其中某个并行度出现故障，JobManager 会停止此任务，向所有的实例发送通知，各实例收到通知后，调用 close 方法，关闭 Kafka 事务 Producer。 checkpoint 会将 Commit 的事务保存在状态里 ，重启时没有commit 成功的继续 commit。
 
 ```scala
 // FlinkKafkaProducer
