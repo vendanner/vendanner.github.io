@@ -1025,6 +1025,19 @@ def maybeShrinkIsr(replicaMaxLagTimeMs: Long) {
 
 `isr-expiration` 线程定时10s 执行一次，遍历所有 leader partition 中 ISR 列表，移除超过10s 没有来拉取数据的 follower 。这样 ISR 列表里 follower 个数会变少，当 follower 的 offset 通过拉取数据追上来后又会重新加入 ISR。
 
+#### 副本切换
+
+假设这么一种情况， leader 节点挂掉后，哪个 follower 节点会成为 leader 呢？
+
+kafka 动态维护一组同步 leader 数据的副本（ISR），只有这个组的成员才有资格当选 leader，kafka 副本写入不被认为是已提交，直到所有的同步副本已经接收才认为。这组 ISR 保存在 zookeeper，正因为如此，**在 ISR 中的任何副本都有资格当选 leader**，这是kafka的使用模型，有多个分区和确保 leader 平衡是很重要的一个重要因素。有了这个模型，ISR 和 f+1 副本，kafka 的主题可以容忍 f 失败而不会丢失已提交的消息。
+
+当所有节点都挂了？
+
+- 等待在 ISR 中的副本起死回生并选择该副本作为 leader（希望它仍有所有数据）。
+- 选择第一个副本 （不一定在 ISR)，作为leader。
+
+在 kafka 0.11 之前选择第二种，0.11 之后选择第一种。
+
 ### 集群管理
 
 #### 选举
@@ -1300,4 +1313,10 @@ private def writeTopicPartitionAssignment(zkUtils: ZkUtils, topic: String, repli
 
 - 网络：1 + 3  +8
 - 副本：(broker-1) + 2
+
+
+
+## 参考资料
+
+[kafka副本和leader选举](https://www.orchome.com/22)
 
