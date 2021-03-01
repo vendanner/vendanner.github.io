@@ -238,13 +238,14 @@ public static void install(SecurityConfiguration config) throws Exception {
 ```java
 private void runCluster(Configuration configuration) throws Exception {
   synchronized (lock) {
+    // 启动基础组件，在 ResourceManager、JobMaster 中都会使用
     initializeServices(configuration);
     // write host information into configuration
     configuration.setString(JobManagerOptions.ADDRESS, commonRpcService.getAddress());
     configuration.setInteger(JobManagerOptions.PORT, commonRpcService.getPort());
-    // initializeServices 初始化之后，create 去启动服务
+    // 创建工厂类
     final DispatcherResourceManagerComponentFactory dispatcherResourceManagerComponentFactory = createDispatcherResourceManagerComponentFactory(configuration);
-
+    // 工厂类去启动服务
     clusterComponent = dispatcherResourceManagerComponentFactory.create(
       configuration,
       ioExecutor,
@@ -259,7 +260,7 @@ private void runCluster(Configuration configuration) throws Exception {
   }
 ```
 
-#### 初始化服务
+#### 基础组件初始化
 
 ```java
 protected void initializeServices(Configuration configuration) throws Exception {
@@ -273,17 +274,19 @@ protected void initializeServices(Configuration configuration) throws Exception 
     // update the configuration used to create the high availability services
     configuration.setString(JobManagerOptions.ADDRESS, commonRpcService.getAddress());
     configuration.setInteger(JobManagerOptions.PORT, commonRpcService.getPort());
-		// HA 服务
+		// 线程池，线程数 = CPU 核数
     ioExecutor = Executors.newFixedThreadPool(
       Hardware.getNumberCPUCores(),
       new ExecutorThreadFactory("cluster-io"));
+    // HA 组件，生产一般为 Zookeeper 实现，
+	  // 容器化的环境中不需要，Yarn/k8s 自动会重启失败的进程
     haServices = createHaServices(configuration, ioExecutor);
-    // blob 服务
+    // 负责文件：app jar、依赖jar、配置文件
     blobServer = new BlobServer(configuration, haServices.createBlobStore());
     blobServer.start();
-    // 心跳
+    // 心跳服务：ResourceManager、JobMaster、TaskManager 俩俩之间互发心跳
     heartbeatServices = createHeartbeatServices(configuration);
-    // metric
+    // metric 服务
     metricRegistry = createMetricRegistry(configuration);
 
     final RpcService metricQueryServiceRpcService = MetricUtils.startMetricsRpcService(configuration, bindAddress);
@@ -295,12 +298,40 @@ protected void initializeServices(Configuration configuration) throws Exception 
       metricRegistry,
       hostname,
       ConfigurationUtils.getSystemResourceMetricsProbingInterval(configuration));
+    // 初始化一个用来存储 ExecutionGraph 的 Store, 实现是：FileArchivedExecutionGraphStore
     archivedExecutionGraphStore = createSerializableExecutionGraphStore(configuration, commonRpcService.getScheduledExecutor());
   }
 }
 ```
 
+基础组件包含：
+
+- 线程池：ioExecutor
+- HA 组件：haServices，生产上一般基于 `Zookeeper` 实现
+- 负责文件：BlobServer，app jar、依赖jar、配置文件等
+- 心跳服务：HeartbeatServices，ResourceManager、JobMaster、TaskManager 俩俩之间会互发心跳
+- metric 服务
+
 #### 启动服务
+
+基础组件启动后，开始启动 `JobManager` 进程中三个重要的服务：`ResourceManager`、`DispatcherRunner`、`JobMaster`、`WebMonitorEndpoint`
+
+- `WebMonitorEndpoint`：Rest API 调用，Flink Job 对外的 Http 接口
+- `ResourceManager`：Job 的资源管理，向 Yarn 申请资源，并分配为 JobMaster
+- `DispatcherRunner`：负责接收用户提交的 JobGragh, 然后启动一个 JobMaster
+- `JobMaster`：任务调度和管理
+
+在启动时先各自的创建工厂，然后使用工厂类启动各自的服务。
+
+- `ResourceManager`：StandaloneResourceManagerFactory
+- `WebMonitorEndpoint`：JobRestEndpointFactory
+- `DispatcherRunner`：DefaultDispatcherRunnerFactory
+
+启动的服务如下：
+
+- `ResourceManager`：StandaloneResourceManager
+- `WebMonitorEndpoint`：DispatcherRestEndpoint
+- `DispatcherRunner`：DefaultDispatcherRunner
 
 `DispatcherResourceManagerComponentFactory` 是抽象类，不同集群运行执行不同的方法。本例是 ` StandaloneSession` ，注意观察传进去的 `ResourceManagerFactory`
 
@@ -357,10 +388,6 @@ public DispatcherResourceManagerComponent create(
   DispatcherRunner dispatcherRunner = null;
 
   try {
-    // 
-    dispatcherLeaderRetrievalService = highAvailabilityServices.getDispatcherLeaderRetriever();
-
-    resourceManagerRetrievalService = highAvailabilityServices.getResourceManagerLeaderRetriever();
     // 调度程序网关
     final LeaderGatewayRetriever<DispatcherGateway> dispatcherGatewayRetriever = new RpcGatewayRetriever<>(
       rpcService,
@@ -399,7 +426,7 @@ public DispatcherResourceManagerComponent create(
       metricFetcher,
       highAvailabilityServices.getClusterRestEndpointLeaderElectionService(),
       fatalErrorHandler);
-    // REST 启动
+    // webMonitorEndpoint 启动
     log.debug("Starting Dispatcher REST endpoint.");
     webMonitorEndpoint.start();
 
@@ -430,8 +457,8 @@ public DispatcherResourceManagerComponent create(
       fatalErrorHandler,
       historyServerArchivist,
       metricRegistry.getMetricQueryServiceGatewayRpcAddress());
-    // 调度器启动 加载 jobGraph
     log.debug("Starting Dispatcher.");
+    // DispatcherRunner 加载 jobGraph，createDispatcherRunner 内部中启动
     dispatcherRunner = dispatcherRunnerFactory.createDispatcherRunner(
       highAvailabilityServices.getDispatcherLeaderElectionService(),
       fatalErrorHandler,
@@ -439,21 +466,74 @@ public DispatcherResourceManagerComponent create(
       ioExecutor,
       rpcService,
       partialDispatcherServices);
-    // 资源管理器启动
+    // ResourceManager 启动
     log.debug("Starting ResourceManager.");
     resourceManager.start();
-
-    resourceManagerRetrievalService.start(resourceManagerGatewayRetriever);
-    dispatcherLeaderRetrievalService.start(dispatcherGatewayRetriever);
-
-    return new DispatcherResourceManagerComponent(
-      dispatcherRunner,
-      resourceManager,
-      dispatcherLeaderRetrievalService,
-      resourceManagerRetrievalService,
-      webMonitorEndpoint);
-  } 
   ...
+}
+```
+
+#### WebMonitorEndpoint
+
+- 初始化一大堆 Handler：initializeHandlers
+- 启动一个 Netty 的服务端，注册这些 Handler
+- HA
+
+#### ResourceManager
+
+- 定时服务：
+  - Slot 申请超时服务：startStartupPeriod ，默认5分钟执行一次
+  - TaskManager 超时检查服务：
+- 心跳服务：**默认10s一次，超时判断 50s**
+  - 与JobMaster 之间心跳
+  - 与 TaskManager 之间的心跳
+
+```java
+// 成为 leader 后
+grantLeadership -> tryAcceptLeadership -> startServicesOnLeadership
+  
+protected void startServicesOnLeadership() {
+  startHeartbeatServices();
+  slotManager.start(getFencingToken(), getMainThreadExecutor(), new ResourceActionsImpl());
+}
+// 心跳服务
+private void startHeartbeatServices() {
+  taskManagerHeartbeatManager = heartbeatServices.createHeartbeatManagerSender(
+    resourceId,
+    new TaskManagerHeartbeatListener(),
+    getMainThreadExecutor(),
+    log);
+
+  jobManagerHeartbeatManager = heartbeatServices.createHeartbeatManagerSender(
+    resourceId,
+    new JobManagerHeartbeatListener(),
+    getMainThreadExecutor(),
+    log);
+}
+```
+
+#### DispatcherRunner
+
+- 启动 JobGraphStore：SessionDispatcherLeaderProcess
+- 从 JobGraphStore 恢复 Job（Zookeeper），并启动 JobMaster
+
+```java
+// org.apache.flink.runtime.dispatcher.runner.SessionDispatcherLeaderProcess
+private void handleAddedJobGraph(JobID jobId) {
+  log.debug(
+    "Job {} has been added to the {} by another process.",
+    jobId,
+    jobGraphStore.getClass().getSimpleName());
+
+  // serialize all ongoing recovery operations
+  onGoingRecoveryOperation = onGoingRecoveryOperation
+    .thenApplyAsync(
+      ignored -> recoverJobIfRunning(jobId),
+      ioExecutor)
+    .thenCompose(optionalJobGraph -> optionalJobGraph
+      .flatMap(this::submitAddedJobIfRunning)
+      .orElse(FutureUtils.completedVoidFuture()))
+    .handle(this::onErrorIfRunning);
 }
 ```
 
