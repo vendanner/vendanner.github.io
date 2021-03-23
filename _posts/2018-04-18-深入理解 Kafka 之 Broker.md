@@ -357,7 +357,7 @@ class RequestChannel(val numProcessors: Int, val queueSize: Int){
 
   // requestChannel.sendRequest(req)
   // requestQueue 线程安全，但会阻塞
-  // 当 requestQueue 没有空间时(默认500)，阻塞知道有空间
+  // 当 requestQueue 没有空间时(默认500)，阻塞直到有空间
   def sendRequest(request: RequestChannel.Request) {
     requestQueue.put(request)
   }
