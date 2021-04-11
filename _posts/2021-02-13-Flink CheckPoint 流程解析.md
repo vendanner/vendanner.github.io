@@ -452,7 +452,7 @@ public void checkpointState
   }
   // 步骤一：
   // 为开始 checkpoint 做准备工作，回调算子的 prepareSnapshotPreBarrier
-  // 该方法执行事件要经可能短
+  // 该方法执行事件要尽可能短
   operatorChain.prepareSnapshotPreBarrier(metadata.getCheckpointId());
   // 步骤二：向下游发送 checkpoint barrier
   operatorChain.broadcastEvent(
