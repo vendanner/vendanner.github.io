@@ -194,7 +194,7 @@ private JobGraph createJobGraph() {
 
 #### Hash
 
-为每个 `StreamNode` 产生一个 `hash`，这个 `hash` 用来生成 `JobGraph` 中对应的 `JobVertex` 的 **ID**。在 Flink 中，当需要状态恢复时，根据 `JobVertexID` 从 CK/SP 中找到相对应的状态。StreamNode 的 hash 可以由用户直接指定或者根据算子**拓扑结构**生成。在 Flink 中，最好为每个都指定算子ID ( uid("xxx") )，当程序升级改变原先拓扑结构后也还能使用**之前的状态**。
+为每个 `StreamNode` 产生一个 `hash`，这个 `hash` 用来生成 `JobGraph` 中对应的 `JobVertex` 的 **ID**。在 Flink 中，当需要状态恢复时，根据 StreamNode 的 hash 从 CK/SP 中找到相对应的状态。StreamNode 的 hash 可以由用户直接指定或者根据算子**拓扑结构**生成。在 Flink 中，最好为每个都指定算子ID ( uid("xxx") )，当程序升级**改变原先拓扑结构**后也还能使用**之前的状态**。
 
 ```java
 // org.apache.flink.streaming.api.graph.StreamGraphHasherV2

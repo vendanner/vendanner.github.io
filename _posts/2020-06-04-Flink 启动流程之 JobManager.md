@@ -317,7 +317,7 @@ protected void initializeServices(Configuration configuration) throws Exception 
 基础组件启动后，开始启动 `JobManager` 进程中三个重要的服务：`ResourceManager`、`DispatcherRunner`、`JobMaster`、`WebMonitorEndpoint`
 
 - `WebMonitorEndpoint`：Rest API 调用，Flink Job 对外的 Http 接口
-- `ResourceManager`：Job 的资源管理，向 Yarn 申请资源，并分配为 JobMaster
+- `ResourceManager`：Job 的资源管理，向 Yarn 申请资源，响应 JobMaster 分配
 - `DispatcherRunner`：负责接收用户提交的 JobGragh, 然后启动一个 JobMaster
 - `JobMaster`：任务调度和管理
 
