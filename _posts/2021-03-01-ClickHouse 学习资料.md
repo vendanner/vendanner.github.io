@@ -35,11 +35,9 @@ tags:
 
 [ClickHouse 源码阅读 —— SQL的前世今生](https://developer.aliyun.com/article/765184?spm=a2c6h.12873581.0.0.4648802fiQGz6p)
 
-[ClickHouse源码笔记1:聚合函数的实现](https://www.cnblogs.com/happenlee/p/13029547.html)
-
 [ClickHouse源码笔记2:聚合流程的实现](https://www.cnblogs.com/happenlee/p/13328977.html)
 
-
+[ClickHouse和他的朋友们系列](https://bohutang.me/tags/clickhouse/page/2/)
 
 ### 场景架构
 

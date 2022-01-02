@@ -279,6 +279,10 @@ public long fastForwardFromEdits(DataTree dt, Map<Long, Integer> sessions, PlayB
 
 ### 选举
 
+上一小节介绍了 Zookeeper 启动时的数据恢复，接下来就进入的选举流程。选举过程涉及到的东西比较多，先看下图有个感性的认识和后再去看源码
+
+
+
 ### 同步数据
 
 
