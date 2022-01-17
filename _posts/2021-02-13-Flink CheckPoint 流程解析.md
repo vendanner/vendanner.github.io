@@ -480,7 +480,7 @@ public void checkpointState
 - prepareSnapshotPreBarrier：算子回调，该函数体执行时长要短
 - 向下游发送 checkpoint barrier
 - checkpiont 非对齐模式，input/output buffer 准备保存
--  checkpioint
+- checkpioint
   - checkpoint 同步操作
   - checkpoint 结束，异步给 JobMaster 发送通知
 
@@ -506,12 +506,6 @@ private static OperatorSnapshotFutures checkpointStreamOperator{
 ```
 
 回调算子 snapshotState 函数
-
-
-
-
-
-
 
 ## 参考资料
 
