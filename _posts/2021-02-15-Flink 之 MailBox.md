@@ -231,21 +231,21 @@ private void processElement(StreamElement recordOrMark, DataOutput<T> output) th
 
 ```java
  result = currentRecordDeserializer.getNextRecord(deserializationDelegate);
- 
+
 // deserializationDelegate.getInstance() 得到反序列化后的对象
  processElement(deserializationDelegate.getInstance(), output);
- 
+
 // org.apache.flink.streaming.runtime.io.AbstractStreamTaskNetworkInput 
 deserializationDelegate =
         new NonReusingDeserializationDelegate<>(
                 new StreamElementSerializer<>(inputSerializer));
- 
+
 // org.apache.flink.runtime.plugable.NonReusingDeserializationDelegate
 // 对象不重用 
  public void read(DataInputView in) throws IOException {
     this.instance = this.serializer.deserialize(in);
 }
- 
+
 // org.apache.flink.streaming.runtime.streamrecord.StreamElementSerializer
 public StreamElement deserialize(DataInputView source) throws IOException {
     int tag = source.readByte();
@@ -459,7 +459,7 @@ protected void emit(T record, int targetSubpartition) throws IOException {
     checkErroneous();
     // 调用 StreamElementSerializer
     targetPartition.emitRecord(serializeRecord(serializer, record), targetSubpartition);
-    
+
     if (flushAlways) {
         // 每来一个数据都直接发送，这样吞吐是很慢的，默认是100ms 往下游发
         targetPartition.flush(targetSubpartition);
@@ -487,8 +487,6 @@ public int selectChannel(SerializationDelegate<StreamRecord<T>> record) {
     return KeyGroupRangeAssignment.assignKeyToParallelOperator(
             key, maxParallelism, numberOfChannels);
 }
-
-
 ```
 
 - 抽取 key
@@ -522,8 +520,6 @@ public static int computeOperatorIndexForKeyGroup(
 - murmurHash对最大并行度取模
 
 - 模数*下游数/最大并行度
-
-
 
 ##### ResultSubPartition
 
@@ -716,8 +712,6 @@ GateNotificationHelper 在close 回调时，调用 toNotify.complete => `InputGa
 
 对应到输入时 **阻塞在InputGate**
 
-
-
 ## 参考资料
 
 [重磅！Flink 将重构其核心线程模型](https://mp.weixin.qq.com/s/MrQZS7-dEuNr442lzw3xYg)
@@ -725,5 +719,3 @@ GateNotificationHelper 在close 回调时，调用 toNotify.complete => `InputGa
 [Flink 基于 MailBox 实现的 StreamTask 线程模型](http://matt33.com/2020/03/20/flink-task-mailbox/)
 
 [Flink状态的缩放（rescale）与键组（Key Group）设计 - 简书](https://www.jianshu.com/p/f0a13f98dac2)
-
-
