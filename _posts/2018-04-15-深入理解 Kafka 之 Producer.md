@@ -38,7 +38,7 @@ Kafka 生产端发送数据流程：
 
 ![](https://vendanner.github.io/img/kafka/Producer_intro.jpg)
 
-``` java
+```java
 // org.apache.kafka.clients.producer.KafkaProducer
 public class KafkaProducer<K, V> implements Producer<K, V> {
   // 分区器，可以自定义
@@ -72,7 +72,7 @@ public class KafkaProducer<K, V> implements Producer<K, V> {
           try {
               serializedValue = valueSerializer.serialize(record.topic(), record.value());
           } 
-        
+
           // 步骤三：获取分区
           int partition = partition(record, serializedKey, serializedValue, cluster);
           int serializedSize = Records.LOG_OVERHEAD + Record.recordSize(serializedKey, serializedValue);
@@ -284,7 +284,7 @@ public final class BufferPool {
   // Deque<ByteBuffer> + availableMemory = 缓存池大小，默认 32M
   // availableMemory 可分配的内存大小
   private long availableMemory;
-  
+
   public ByteBuffer allocate(int size, long maxTimeToBlockMs) throws InterruptedException {
     // size 大于 总缓存池大小，直接报错，太大了放不下
     if (size > this.totalMemory)
@@ -364,7 +364,7 @@ public final class BufferPool {
                 accumulated += got;
             }
         }
-      
+
    public void deallocate(ByteBuffer buffer, int size) {
       lock.lock();
       try {
@@ -413,7 +413,7 @@ public class Selector implements Selectable {
   private final java.nio.channels.Selector nioSelector;
   // 记录对 kafka broker 连接
   private final Map<String, KafkaChannel> channels;
-  
+
   // 与 kafka broker 建立连接，id = kafka node
   public void connect(String id, InetSocketAddress address, int sendBufferSize, int receiveBufferSize) throws IOException {
     ...
@@ -451,7 +451,7 @@ public class Selector implements Selectable {
     this.channels.put(id, channel);
     ...
   }
-  
+
   // 发送数据
   public void send(Send send) {
     // 通过send 获取 kafka node 得到对应的 channel
@@ -464,7 +464,7 @@ public class Selector implements Selectable {
         close(channel);
     }
   }
-  
+
   // sender 线程中会定时调用获取 event 
   // 读取 nio selector event，time 表示是否需要阻塞等待事件发生
   public void poll(long timeout) throws IOException {
@@ -566,7 +566,7 @@ public class Selector implements Selectable {
 
 kafka 的解决方案是相当于在原有 data 基础上增加 header，header 只包含 data size，很朴素和通用方案。两个数据包变成 10"hello word"，11"flink kafka"。此时读取方式变为先读取4字节 `size`，然后再开辟 size 大小的 `buffer` 存data，**死循环**直到 data buffer 读满
 
-``` java
+```java
 // org.apache.kafka.common.network.Selector
 if (channel.ready() && key.isReadable() && !hasStagedReceive(channel)) {
     NetworkReceive networkReceive;
@@ -753,7 +753,7 @@ public boolean isReady(Node node, long now) {
 
 要发送的 recordBatch 封装成 ClientRequest
 
-``` java
+```java
 // List<ClientRequest> requests = createProduceRequests(batches, now);
 // org.apache.kafka.clients.producer.internals.Sender
 private List<ClientRequest> createProduceRequests(Map<Integer, List<RecordBatch>> collated, long now) {
@@ -832,7 +832,6 @@ public List<ClientResponse> poll(long timeout, long now) {
   }
   return responses;
 }
-
 ```
 
 - 发送结束的响应
@@ -971,7 +970,6 @@ public void done(long baseOffset, long timestamp, RuntimeException exception) {
           }
       } 
 }
-
 ```
 
 ![](https://vendanner.github.io/img/kafka/sender_response.jpg)
