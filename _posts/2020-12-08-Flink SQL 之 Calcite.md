@@ -12,12 +12,6 @@ tags:
     - SQL
 ---
 
-
-
-
-
-
-
 ## 参考资料
 
 [Apache Calcite 简介](https://www.jianshu.com/p/2dfbd71b7f0f)
@@ -31,5 +25,7 @@ tags:
 [Apache Calcite学习资料](https://zhuanlan.zhihu.com/p/76510053)
 
  [基于calcite做傻瓜式的sql优化(一)](https://www.cnblogs.com/niutao/articles/13982876.html)
+
+[calcite教程01-calcite的基本概念 | 喜延的个人博客](https://lixiyan4633.gitee.io/2020/03/18/calcite%E6%95%99%E7%A8%8B01-calcite%E7%9A%84%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5/)
 
 
