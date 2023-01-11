@@ -31,9 +31,37 @@ StarRocks 源码中有丰富的测试案例，选择案例中的一条SQL来分�
 本例中的SQL 经Analyze 后生成的AST，如下所示
 ![](https://vendanner.github.io/img/StarRocks/AST.png)
 
+上图对应下面几个行为
+
+- `TableRelation` : 包含表t0 的基本信息
+- `SelectRelation`：
+  - **select 内容从哪里来**：relation => TableRelation
+  - **select 哪些字段**：selectList
+- `SubqueryRelation`: 
+  - 别名： alias
+  - query： select
+- `SelectRelation`: 
+  - **select 内容从哪里来**：relation => SubqueryRelation
+  - **select 哪些字段**：selectList
+
+通过AST，大致了解本SQL要做哪些事情
+
+1. 获取表数据
+2. 表中有三列，但只需要v1 这列即可
+3. select 后得到一个子查询，并命名为 "a"
+4. 从表"a" 中取 "k" 这列
+
+AST 到这里为止，下面看看LogicalPlan。
 
 
 
+## LogicalPlan
+
+
+
+
+
+大声点
 
 ## 参考资料
 
