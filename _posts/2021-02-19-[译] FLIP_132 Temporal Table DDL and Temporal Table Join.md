@@ -1,6 +1,6 @@
 ---
 layout:     post
-title:      [译] FLIP-132 Temporal Table DDL and Temporal Table Join
+title:      [译] FLIP_132 Temporal Table DDL and Temporal Table Join
 subtitle:   
 date:       2021-02-19
 author:     danner
