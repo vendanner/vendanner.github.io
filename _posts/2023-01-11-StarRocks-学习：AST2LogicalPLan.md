@@ -14,9 +14,13 @@ tags:
 > 从 SQL 文本到分布式物理执行计划, 在 StarRocks 中，需要经过以下 5 个步骤:
 >
 > 1、SQL Parse： 将 SQL 文本转换成一个 AST（抽象语法树）
+>
 > 2、SQL Analyze：基于 AST 进行语法和语义分析
+>
 > 3、SQL Logical Plan： 将 AST 转换成逻辑计划
-> 4、SQL Optimize：基于关系代数、统计信息、Cost 模型，对逻辑计划进行重写、转换，选择出 Cost “最低” 的物理执行计划
+>
+> 4、SQL Optimize：基于关系代数、统计信息、Cost 模型，对逻辑计划进行重写、转换，选择出 Cost “最低” 的物理执行计
+>
 > 5、生成 Plan Fragment：将 Optimizer 选择的物理执行计划转换为 BE 可以直接执行的 Plan Fragment
 
 本文分析的是步骤三：在StarRocks 中如何将AST转换成LogicalPlan，供后续优化器优化。
