@@ -67,7 +67,7 @@ com.starrocks.sql.optimizer.transformer.RelationTransformer#transformWithSelectL
 
 **transformWithSelectLimit**将AST 转换为LogicalPlan，本例中生成的LogicalPlan 如下所示
 
-![](https://vendanner.github.io/img/logicalPlan.png)
+![](https://vendanner.github.io/img/StarRocks/logicalPlan.png)
 
 下面分析**transformWithSelectLimit**逻辑
 
