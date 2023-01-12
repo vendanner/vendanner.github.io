@@ -30,7 +30,7 @@ StarRocks 源码中有丰富的测试案例，选择案例中的一条SQL来分�
 - 源码目录：com.starrocks.sql.analyzer.AnalyzeSubqueryTest
 - SQL：select k from (select v1 as k from t0) a
 
-## AST
+### AST
 
 本例中的SQL 经Analyze 后生成的AST，如下所示
 ![](https://vendanner.github.io/img/StarRocks/AST.png)
@@ -57,9 +57,7 @@ StarRocks 源码中有丰富的测试案例，选择案例中的一条SQL来分�
 
 AST 到这里为止，下面看看LogicalPlan。
 
-
-
-## LogicalPlan
+### LogicalPlan
 
 ```java
 com.starrocks.sql.optimizer.transformer.RelationTransformer#transformWithSelectLimit(Relation relation)
@@ -71,7 +69,7 @@ com.starrocks.sql.optimizer.transformer.RelationTransformer#transformWithSelectL
 
 下面分析**transformWithSelectLimit**逻辑
 
-### visit
+#### visit
 
 访问者模式应该并不陌生，它可以将数据结构定义和处理分开。在这里，**RelationTransformer**来就是负责处理，而本例中涉及的数据结构: SelectRelation、SubqueryRelation、TableRelation 都包含`accept` 函数供**RelationTransformer**调用。
 
@@ -79,13 +77,11 @@ LogicalPlan 是从下到上生成的，利用visit 进行递归。
 
 ![](https://vendanner.github.io/img/StarRocks/ATS_visit.png)
 
-
-
-### 数据结构
+#### 数据结构
 
 在看LogicalPlan 如何生成前，先介绍下OptExprBuilder 和LogicalPlan 结构
 
-#### OptExprBuilder
+##### OptExprBuilder
 
 ```java
 // com.starrocks.sql.optimizer.transformer.OptExprBuilder
@@ -97,7 +93,7 @@ public class OptExprBuilder {
 - root：定义当前OptExpression的 Operator
 - inputs： 当前OptExpression的输入，可以构造一个OptExpression tree
 
-#### LogicalPlan
+##### LogicalPlan
 
 ```java
 // com.starrocks.sql.optimizer.transformer.LogicalPlan
@@ -108,7 +104,7 @@ public class LogicalPlan {
 
 由此可见，LogicalPlan 只是对OptExprBuilder 包了一层，真正的逻辑在OptExprBuilder。
 
-### TableRelation
+#### TableRelation
 
 ```java
 // com.starrocks.sql.optimizer.transformer.RelationTransformer#visitTable
@@ -162,7 +158,7 @@ public LogicalOlapScanOperator {
 
 看最后的LogicalPlan 创建，对应的就是上面LogicalPlan图的最下面一个 OptExprBuilder。
 
-### SelectRelation
+#### SelectRelation
 
 ```java
 // com.starrocks.sql.optimizer.transformer.RelationTransformer#visitSelect
@@ -206,7 +202,7 @@ public LogicalPlan plan(SelectRelation queryBlock, ExpressionMapping outer) {
 
 plan 中还包含很多操作：filter、aggregate、distinct、sort、limit，每个操作都生成一个新的OptExprBuilder(老的OptExprBuilder 当作input)。`project` 函数做了表达式计算，新建一个LogicalProjectOperator，并将之前的OptExprBuilder 当成input。
 
-### SubqueryRelation
+#### SubqueryRelation
 
 ```java
 // com.starrocks.sql.optimizer.transformer.RelationTransformer#visitSubquery
@@ -224,15 +220,11 @@ public LogicalPlan visitSubquery(SubqueryRelation node, ExpressionMapping contex
 
 visitSubquery 没有实质的逻辑(OrderByLimit先放一边，本例不涉及)，只是把下层的LogicalPlan 取出来重新构建一个新的LogicalPlan。
 
-
-
-## 转换图
+### 转换图
 
 ![](https://vendanner.github.io/img/StarRocks/ast2logicalPlan.png)
 
 
-
-大声点
 
 ## 参考资料
 
