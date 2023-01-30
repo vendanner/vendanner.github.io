@@ -200,7 +200,9 @@ public LogicalPlan plan(SelectRelation queryBlock, ExpressionMapping outer) {
 }
 ```
 
-plan 中还包含很多操作：filter、aggregate、distinct、sort、limit，每个操作都生成一个新的OptExprBuilder(老的OptExprBuilder 当作input)。`project` 函数做了表达式计算，新建一个LogicalProjectOperator，并将之前的OptExprBuilder 当成input。
+plan 中还包含很多操作：filter、aggregate、distinct、sort、limit，每个操作都生成一个新的OptExprBuilder(老的OptExprBuilder 当作input)。
+
+`project` 函数是做投影，从input 中选某几列当作输出。具体是选哪几列，从SelectRelation.outputExpr 中获取。
 
 #### SubqueryRelation
 
