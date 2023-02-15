@@ -50,12 +50,12 @@ ruleRewriteOnlyOnce(tree, rootTaskContext, RuleSetType.PRUNE_COLUMNS);
 ......
 ```
 
-- ruleRewriteIterative：一直迭代，直到当前逻辑计划不会变化(无重写)
+- ruleRewriteIterative：一直迭代，直到当前逻辑计划不会变化(不再重写)
 - ruleRewriteOnlyOnce： 只会调用一次，无论是否会优化重写
 
 #### SeriallyTaskScheduler
 
-每个`ruleRewrite`都是将task 包装成 `RewriteTreeTask` 供SeriallyTaskScheduler 调度执行(这里没看到啥调度?，看起来是单线程顺序执行)。调试时需要注意的是`NEW_PLANNER_OPTIMIZER_TIMEOUT` 参数：整个Optimizer 过程不能超过这个时间，否则报错；调试时将此参数调大。
+每个`ruleRewrite`都是将task 包装成 `RewriteTreeTask` 供SeriallyTaskScheduler 调度执行(这里没看到啥调度? 看起来是单线程顺序执行)。调试时需要注意的是`NEW_PLANNER_OPTIMIZER_TIMEOUT` 参数：整个Optimizer 过程不能超过这个时间，否则报错；调试时将此参数调大。
 
 ```java
 // com.starrocks.sql.optimizer.task.SeriallyTaskScheduler#executeTasks
@@ -175,7 +175,7 @@ private void rewrite(OptExpression parent, int childIndex, OptExpression root) {
 
 - `rewrite`：
   - 优化路径是**TopDown** -> 先将规则作用root node，然后递归作用于root node 输入节点
-  - 若logicalNode 满足当前规则(match)，调用` rule.transform` 重写(这是重点，下文会选几个rule 来分析如何重写)
+  - 若logicalNode 满足当前规则(match)，调用`rule.transform` 重写(这是重点，下文会选几个rule 来分析如何重写)
 
 #### Pattern
 
