@@ -350,8 +350,8 @@ Logical node 和Pattern 是否match，答案是显而易见
 // com.starrocks.sql.optimizer.rule.transformation.MergeTwoProjectRule
 
 /**
- * 上下层级相邻的两个Project 行为合并为一个Project，保留上层字段和下层的CallOperator
- * LogicalProjectOperator
+ * 上下层级相邻的两个Project 行为合并为一个Project，保留上层字段和下层的CallOperator<br>
+ * LogicalProjectOperator<br>
  *  LogicalProjectOperator
  * ->
  * LogicalProjectOperator
