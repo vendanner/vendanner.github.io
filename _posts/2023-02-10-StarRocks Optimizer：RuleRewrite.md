@@ -282,12 +282,11 @@ public PushDownPredicateScanRule(OperatorType type) {
     super(RuleType.TF_PUSH_DOWN_PREDICATE_SCAN, Pattern.create(OperatorType.LOGICAL_FILTER, type));
 }
 
-/**
- * Filter + Scan 算子优化
- *  将Filter 和Scan 的predicate AND 操作 -> newPredicate
- *  newPredicate 优化 -> rewriteOnlyColumn + DEFAULT_REWRITE_SCAN_PREDICATE_RULES
- *  优化后的newPredicate 替换原先Scan 的predicate
- *
+/*
+ Filter + Scan 算子优化
+ 将Filter 和Scan 的predicate AND 操作 -> newPredicate
+ newPredicate 优化 -> rewriteOnlyColumn + DEFAULT_REWRITE_SCAN_PREDICATE_RULES
+ 优化后的newPredicate 替换原先Scan 的predicate
  */
 @Override
 public List<OptExpression> transform(OptExpression input, OptimizerContext context) {
