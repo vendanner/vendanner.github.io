@@ -282,12 +282,10 @@ public PushDownPredicateScanRule(OperatorType type) {
     super(RuleType.TF_PUSH_DOWN_PREDICATE_SCAN, Pattern.create(OperatorType.LOGICAL_FILTER, type));
 }
 
-/*
- Filter + Scan 算子优化
- 将Filter 和Scan 的predicate AND 操作 -> newPredicate
- newPredicate 优化 -> rewriteOnlyColumn + DEFAULT_REWRITE_SCAN_PREDICATE_RULES
- 优化后的newPredicate 替换原先Scan 的predicate
- */
+// Filter + Scan 算子优化
+// 将Filter 和Scan 的predicate AND 操作 -> newPredicate
+// newPredicate 优化 -> rewriteOnlyColumn + DEFAULT_REWRITE_SCAN_PREDICATE_RULES
+// 优化后的newPredicate 替换原先Scan 的predicate
 @Override
 public List<OptExpression> transform(OptExpression input, OptimizerContext context) {
     LogicalFilterOperator lfo = (LogicalFilterOperator) input.getOp();
@@ -349,14 +347,11 @@ Logical node 和Pattern 是否match，答案是显而易见
 ```java
 // com.starrocks.sql.optimizer.rule.transformation.MergeTwoProjectRule
 
-/**
- * 上下层级相邻的两个Project 行为合并为一个Project，保留上层字段和下层的CallOperator<br>
- * LogicalProjectOperator<br>
- *  LogicalProjectOperator
- * ->
- * LogicalProjectOperator
- *
- */
+// 上下层级相邻的两个Project 行为合并为一个Project，保留上层字段和下层的CallOperator<br>
+// LogicalProjectOperator<br>
+//  LogicalProjectOperator
+// ->
+// LogicalProjectOperator
 @Override
 public List<OptExpression> transform(OptExpression input, OptimizerContext context) {
     LogicalProjectOperator firstProject = (LogicalProjectOperator) input.getOp();
@@ -401,11 +396,9 @@ LogicalProjectOperator {projection=[1: t1]}
 
 ```java
 // com.starrocks.sql.optimizer.rule.transformation.PruneScanColumnRule
-/**
- * scan 时列裁剪，只scan 真正要的列
- *      outputColumns = requiredOutputColumns + Predicate
- *
- */
+//
+// scan 时列裁剪，只scan 真正要的列
+//      outputColumns = requiredOutputColumns + Predicate
 @Override
 public List<OptExpression> transform(OptExpression input, OptimizerContext context) {
     LogicalScanOperator scanOperator = (LogicalScanOperator) input.getOp();
@@ -465,11 +458,8 @@ LogicalOlapScanOperator {table=0, selectedPartitionId=null, outputColumns=[1: t1
 
 ```java
 // com.starrocks.sql.optimizer.rule.transformation.MergeProjectWithChildRule
-/**
- * 合并Project+Scan => Scan
- *  将Project 直接塞进 Scan.setProjection(Project)
- *
- */
+// 合并Project+Scan => Scan
+//  将Project 直接塞进 Scan.setProjection(Project)
 @Override
 public List<OptExpression> transform(OptExpression input, OptimizerContext context) {
     LogicalProjectOperator logicalProjectOperator = (LogicalProjectOperator) input.getOp();
