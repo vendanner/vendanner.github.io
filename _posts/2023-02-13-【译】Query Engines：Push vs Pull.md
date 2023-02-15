@@ -1,6 +1,6 @@
 ---
 layout:     post
-title:      【译】Query Engines: Push vs. Pull
+title:      【译】Query Engines：Push vs. Pull
 subtitle:   
 date:       2023-02-13
 author:     danner
