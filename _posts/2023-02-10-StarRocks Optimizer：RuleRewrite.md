@@ -55,7 +55,7 @@ ruleRewriteOnlyOnce(tree, rootTaskContext, RuleSetType.PRUNE_COLUMNS);
 
 #### SeriallyTaskScheduler
 
-每个`ruleRewrite`都是将task 包装成 `RewriteTreeTask` 供SeriallyTaskScheduler 调度执行(这里没看到啥调度? 看起来是单线程顺序执行)。调试时需要注意的是`NEW_PLANNER_OPTIMIZER_TIMEOUT` 参数：整个Optimizer 过程不能超过这个时间，否则报错；调试时将此参数调大。
+每个`ruleRewrite`都是将task 包装成 `RewriteTreeTask` 供SeriallyTaskScheduler 调度执行(这里没看到啥调度? 看起来是单线程顺序执行 => 真正起作用是在`memo` `task`调度)。调试时需要注意的是`NEW_PLANNER_OPTIMIZER_TIMEOUT` 参数：整个Optimizer 过程不能超过这个时间，否则报错；调试时将此参数调大。
 
 ```java
 // com.starrocks.sql.optimizer.task.SeriallyTaskScheduler#executeTasks
