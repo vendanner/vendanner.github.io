@@ -12,7 +12,7 @@ tags:
     - Optimizer
 ---
 
-优化器的核心部分，但如果对标题中的`Memo` 概念不熟悉，建议多看几遍参考资料(理论看参考资料，这里只有流程解读)。
+优化器的核心部分，但如果对标题中的`Memo` 概念不熟悉，建议多看几遍参考资料(理论知识看参考资料，这里只有流程解读)。
 
 源码目录：com.starrocks.sql.optimizer.OptimizerTaskTest#testTwoJoin
 
@@ -291,6 +291,12 @@ Stack 结构**先进后出**，利用此特性可以Top-Down 遍历，看图感�
 OptimizeExpressionTask -> ApplyRuleTask -> 新的PhysicalExpression(PhysicalNestLoopJoin 3&2)
 
 然后开始新一轮的`EnforceAndCostTask`，与之前不同的是，input cost 都已经计算过了，无需再递归计算。
+
+> 1. 在初始时只有basic groups，每个group中一个initial logical m-expr，和AST中的expr一一对应
+> 2. 开始对top group执行O_GROUP task，其中会对唯一的m-expr调用O_EXPR，生成logical/physical m-exprs，并优先对生成的physical m-expr生成O_INPUTS task，递归下去得到完成的physical plan，并用其cost更新search context中的cost upper bound，帮助后续pruning。
+> 3. 新生成的logical m-expr会继续优化导致一系列m-expr的生成，从而在已有group中扩展新的m-expr或在search space中加入新的group
+> 4. 优化过程中会不断有physical m-expr的生成，然后就递归到下层去生成对应的plan/subplan，并得到各个层次上的局部最优解记入winner中，并返回到上层做汇总，最终回到top group得到完整physical plan
+> 5. 最终top group不再有新的logical / physical m-expr生成时，优化结束
 
 #### Cost
 
