@@ -4,7 +4,7 @@
     padding-right: 5%;
   }
 }
-@media (min-width: 768px) {
+@media (min-width: 1000px) {
   .post-container {
     padding-right: 5%;
   }
