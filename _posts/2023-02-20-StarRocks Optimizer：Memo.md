@@ -12,7 +12,7 @@ tags:
     - Optimizer
 ---
 
-优化器的核心部分，但如果对标题中的`Memo` 概念不熟悉，建议多看几遍参考资料。
+优化器的核心部分，但如果对标题中的`Memo` 概念不熟悉，建议多看几遍参考资料(理论看参考资料，这里只有流程解读)。
 
 源码目录：com.starrocks.sql.optimizer.OptimizerTaskTest#testTwoJoin
 
@@ -42,9 +42,9 @@ public class Memo {
 
 用于**记录**优化器搜索过程中产生的各种备选的 Plan
 
-- rootGroup：根节点group，查询顶点
-- groups：存储所有 group
-- groupExpressions：Map结构，记录所有GroupExpression，有**去重功能**防止重复生成GroupExpression
+- `rootGroup`：根节点group，查询顶点
+- `groups`：存储所有 group
+- `groupExpressions`：Map结构，记录所有GroupExpression，有**去重功能**防止重复生成GroupExpression
 
 #### Group
 
@@ -58,19 +58,17 @@ public class Group {
   private final Map<PhysicalPropertySet, Pair<Double, GroupExpression>> lowestCostExpressions;
 ```
 
-逻辑等价类：一系列逻辑相等(**输出数据**都是相同)的逻辑/物理节点的集合，
+逻辑等价类：一系列逻辑相等(**输出数据**都是相同)的逻辑/物理节点集合，
 
-- logicalExpressions/physicalExpressions：逻辑/物理表达式，同个Group 下的表达式表现的逻辑都相同
+- `logicalExpressions/physicalExpressions`：逻辑/物理表达式，同个Group 下的表达式逻辑都相同
 
-- isExplored：是否已探索(尝试去应用规则来转换生成新的GroupExpression)，只应用一次
+- `isExplored`：是否已探索(尝试去应用规则来转换生成新的GroupExpression)，只应用一次
   - `ExploreGroupTask` 会修改
 - `lowestCostExpressions`：
-  - 代表每一个 Group 中，满足 Required Property 下的最佳 Expression，并记录相应的 Cost
+  - 代表每一个 Group 中，满足 **Required Property** 下的最佳 Expression，并记录相应的 `Cost`
   - 生成最优物理计划时使用
 
 #### GroupExpression
-
-可以简单理解为与OptExpression 相等
 
 ```java
 // com.starrocks.sql.optimizer.GroupExpression
@@ -80,13 +78,15 @@ public class GroupExpression {
   private final Map<PhysicalPropertySet, Pair<Double, List<PhysicalPropertySet>>> lowestCostTable;
 ```
 
-- ruleMasks：记录当前Expression 已作用过的rule，每个rule 每个GroupExpression 只能作用一次；
-  - `OptimizeExpressionTask` 准备rule时， 会剔除已作用过的 rule
-  - `ApplyRuleTask` 修改
-- statsDerived： `Statistics` 是否已生成，只会生成一次；
-  - `DeriveStatsTask` 修改
+可以简单理解与OptExpression 相等
+
+- `ruleMasks`：记录当前Expression 已应用的rule，每个rule 在每个GroupExpression 只能应用一次；
+  - `OptimizeExpressionTask` 收集rule 时， 会剔除已作用过的 rule
+  - `ApplyRuleTask` 会修改值
+- `statsDerived`： `Statistics` 是否已生成，只会生成一次；
+  - `DeriveStatsTask` 会设置
 - `lowestCostTable`：
-  - 代表每一个 GroupExpression 中，满足了 Required Property 条件的节点，它的子节点需要满足的 Required Properties
+  - 代表每一个 GroupExpression 中，满足了 **Required Property** 条件的节点，它的**子节点**需要满足的 **Required Properties**
 
 #### OptimizeExpressionTask
 
@@ -96,9 +96,9 @@ public class OptimizeExpressionTask extends OptimizerTask {
   private final boolean isExplore;
 ```
 
-探索任务，负责Exploration 和 Implementation 过程
+优化表达式任务，负责Exploration 和 Implementation 过程
 
-- isExplore: 是否在探索(GroupExpression 关系代数变换)，=false 表示想计算cost 可以添加 Implementation Rule(to Physical)
+- `isExplore`: 是否在探索(GroupExpression 关系代数变换)；=false 表示想计算cost 可以添加 Implementation Rule(to Physical)
   - `OptimizeGroupTask`: 调用 OptimizeExpressionTask 时，=false
   - `ExploreGroupTask`: 调用 OptimizeExpressionTask 时，=true
 
@@ -129,7 +129,7 @@ Explore group logical transform => 调用 OptimizeExpressionTask，注意isExplo
 public class DeriveStatsTask extends OptimizerTask {
 ```
 
-获取 GroupExpression 的统计信息(cost 计算需要)
+获取 GroupExpression 的统计信息(`Cost` 计算需要)
 
 #### OptimizeGroupTask
 
@@ -167,7 +167,7 @@ public class ApplyRuleTask extends OptimizerTask {
   private final GroupExpression groupExpression;
 ```
 
-将 Rule 应用到 Logical Plan 中，实现 Logical->Logical、Logical->Physical 的转换，通过等价变换拓展每个 Group 的搜索空间(生成新的logical/physical)。
+将 Rule 应用到 Logical Plan 中，实现 Logical->Logical、Logical->Physical 的转换，<br>通过等价变换拓展每个 Group 的搜索空间(生成新的logical/physical)。
 
 #### EnforceAndCostTask
 
@@ -186,7 +186,7 @@ public class EnforceAndCostTask extends OptimizerTask implements Cloneable {
   private int prevChildIndex = -1;
 ```
 
-计算 Physical Plan 的 Cost 的过程，如果某个 Expression 不满足Property，会 Enforce 出其他 Operator，例如 Broadcast、Shuffle、Sort 等算子
+计算 Physical Plan Cost 的过程，如果某个 Expression 不满足Property，会 Enforce 出其他 Operator，例如 Broadcast、Shuffle、Sort 等算子
 
 #### SeriallyTaskScheduler
 
@@ -224,14 +224,14 @@ public void executeTasks(TaskContext context) {
 }
 ```
 
-Stack 结构**先进后出**，利用此特性Top-Down遍历，看图感受下(数字表示group id，memo中唯一标识)
+Stack 结构**先进后出**，利用此特性可以Top-Down 遍历，看图感受下(数字表示group id)
 
 ![](https://vendanner.github.io/img/StarRocks/stack_task.png)
 
-- 左边是第一次执行 OptimizeGroupTask 后，压入OptimizeExpressionTask(2&3) 任务
-- 中间是弹出OptimizeExpressionTask(2&3)  并执行，生成5个ApplyRuleTask、1个DeriveStatsTask、2个ExploreGroupTask
-- 右边是弹出最后压栈的 Explore(group2) 并执行，生成OptimizeExpressionTask(group2) 压栈
-- 继续执行的话，执行OptimizeExpressionTask(group2) 并压入ApplyRuleTask、DeriveStatsTask、ExploreGroupTask；周而复始
+- 左边是第一次执行 `OptimizeGroupTask` 后，压入`OptimizeExpressionTask(2&3)` 任务
+- 中间是弹出`OptimizeExpressionTask(2&3)`  并执行，生成5个`ApplyRuleTask`、1个`DeriveStatsTask`、2个`ExploreGroupTask`
+- 右边是弹出最后压栈的 `Explore(group2)` 并执行，生成`OptimizeExpressionTask(group2)` 压栈
+- 继续执行的话，执行`OptimizeExpressionTask(group2)` 并压入`ApplyRuleTask`、`DeriveStatsTask`、`ExploreGroupTask`
 
 ### 优化流程
 
@@ -241,21 +241,21 @@ Stack 结构**先进后出**，利用此特性Top-Down遍历，看图感受下(�
 
 - `OptimizeGroupTask` -> rootGroup 起始
   - `OptimizeExpressionTask` 优化Group 内的所有Logical Expression
-  - `EnforceAndCostTask` 计算Group 内所有Physical Expression Cost(cost 计算需要统计信息)
+  - `EnforceAndCostTask` 计算Group 内所有`Physical Expression Cost`
 - `OptimizeExpressionTask`
-  - `ApplyRuleTask` 将Rule 作用 GroupExpression 进行Expression 变换(logical->logical or logical->physical)
+  - `ApplyRuleTask` 将Rule 应用到 GroupExpression 进行Expression 变换(`logical->logical` or `logical->physical`)
   - `DeriveStatsTask` 收集统计信息
   - `ExploreGroupTask` 探索当前GroupExpression 的input Group
-- `DeriveStatsTask` 收集统计信息，这个task 逻辑最简单
+- `DeriveStatsTask` **收集统计信息**，这个task 逻辑最简单
 - `ExploreGroupTask` 会调用 OptimizeExpressionTask 来优化，isExplore=true
 - `ApplyRuleTask` 将Rule  应用到 GroupExpression，可能会生成新的Expression
-  - 生成logical Expression：调用 OptimizeExpressionTask 继续优化生成的Expression
+  - 生成logical Expression：调用 OptimizeExpressionTask 继续优化新生成的Expression
   - 生成physical Expression：调用EnforceAndCostTask 计算Expression Cost
-- `EnforceAndCostTask`：计算当前Expression 的 `Cost = localCost + inputCost`
-  - 会深度优先input cost 
+- `EnforceAndCostTask`：计算当前Expression  `Cost = localCost + inputCost`
+  - 深度优先input cost 
   - 如何计算input cost？ 调用OptimizeGroupTask
 
-整个流程可以简化为
+整个流程简化为
 
 > 深度优先的递归进行logical 变换，并获取所有groupExpression Stats
 >
@@ -268,21 +268,21 @@ Stack 结构**先进后出**，利用此特性Top-Down遍历，看图感受下(�
 ![](https://vendanner.github.io/img/StarRocks/memo_1.png)
 
 - 第一幅是memo.init 调用后，将OptExpression 拷贝到memo 
-- 第二幅是group2 ApplyRuleTask 生成新的LogicalExpression(交换律)
+- 第二幅是group2 `ApplyRuleTask` 生成新的LogicalExpression(**交换律**)
 - 执行到第三幅之前，“深度优先的递归将logical变换，并获取所有groupExpression Stats” 已全部执行
-- 第三幅是执行`Apply(IMP_JOIN_TO_NESTLOOP_JOIN)` 生成了新的“PhysicalNestLoopJoin 2&3”，并开始调用`EnforceAndCostTask`
-- 第四幅是执行`EnforceAndCostTask` 时，计算input cost 生成
+- 第三幅是执行`Apply(IMP_JOIN_TO_NESTLOOP_JOIN)` 生成新的“PhysicalNestLoopJoin 2&3”，并开始调用`EnforceAndCostTask`
+- 第四幅是执行`EnforceAndCostTask` 时，计算input cost 
   - OptimizeGroupTask -> OptimizeExpressionTask -> ApplyRuleTask -> 生成新的PyhsicalExpression
 
 ![](https://vendanner.github.io/img/StarRocks/memo_2.png)
 
-- 左图：上面第四幅生成新的PyhsicalExpression，紧接着要`EnforceAndCostTask`；同理会计算 input cost，那么又会生成新的PyhsicalExpression
+- 左图：上面第四幅生成新的PyhsicalExpression，紧接着要`EnforceAndCostTask`；同理会计算 input cost，就又会生成新的PhysicalExpression
 - 中间图：
-  - 上面第四幅在计算完"PhysicalNestLoopJoin(0&1)" 后(input cost都计算结束即左图结束)，会继续`Apply(IMP_JOIN_TO_NESTLOOP_JOIN)` 生成"PhysicalNestLoopJoin(1&0)" (为啥在这里才计算，因为Stack 特性)
-  - 同理计算完"PhysicalNestLoopJoin(1&0)"后，会继续上面第四幅计算input cost => 之前所有都是在计算 input1，现在计算input2，join操作有两个input；生成新的PyhsicalExpression
+  - 左图"PhysicalNestLoopJoin(0&1)" input cost 计算结束后，会继续`Apply(IMP_JOIN_TO_NESTLOOP_JOIN)` 生成"PhysicalNestLoopJoin(1&0)" (为啥input cost 都结束了这里才计算，因为Stack 特性)
+  - 同理计算完"PhysicalNestLoopJoin(1&0)"后，会继续上面第四幅计算input cost => 之前所有都是在计算 input1，现在计算input2(join操作有两个input)；生成新的PyhsicalExpression
 - 右图：
-  - 到这里之前，上图第四幅计算input cost 全部结束，"PhysicalNestLoopJoin 2&3" 的Cost 确定(从Top-Down)
-  - Group4 ApplyRuleTask 生成新的LogicalExpression(Apply(TF_JOIN_COMMUTATIVITY)
+  - 到这里之前，上图第四幅计算input cost 全部结束，"PhysicalNestLoopJoin 2&3" 的Cost 值生成(从Top-Down)
+  - Group4 `Apply(TF_JOIN_COMMUTATIVITY` 生成新的LogicalExpression
 
 ![](https://vendanner.github.io/img/StarRocks/memo_3.png)
 
@@ -430,17 +430,17 @@ private void optimizeChildGroup(PhysicalPropertySet inputProperty, Group childGr
 
 `Cost = localCost + inputCost`
 
-> 每个physical expr为起点深度优先，向下查找，首先会扣除它自身的cost，并根据其上层的property requirement 以及expr 自身的property 特性，形成对其输入group 的physical property 要求，这样就从当前level 1 的(cost , prop requirement1) 递归到了下层group (level 2)，optimization goal变为了 (cost - l1 cost, prop requirement2)。
+> 每个physical expr 为起点深度优先，向下查找，首先会扣除它自身的Cost，并根据其上层的property requirement 以及expr 自身的property 特性，形成对其输入group 的physical property 要求，这样就从当前level 1 的(Cost , prop requirement1) 递归到了下层group (level 2)，optimization goal变为了 (Cost - l1 Cost, prop requirement2)。
 
 - initRequiredProperties：获取其**输入group** 的`physical property` 要求(Sort/Distribution)
 - 遍历physical property :
   - `CostModel.calculateCost(groupExpression)` 计算当前Expression 的cost
   - 获取输入group 中满足`physical property` 且Cost 最小的GroupExpression(BestExpression)，若不存在BestExpression
-    - 若输入group 已Optimize 后，那么是输入group 满足`physical property` 的cost 太高( > UpperBoundCost)，则这条链路到此结束(剪枝)
+    - 若输入group 已Optimize 后，说明是输入group 满足`physical property` 的cost 太高( 不满足 < UpperBoundCost，看上面代码直接break)，则这条链路到此结束(`剪枝`)
     - 若输入group 还未Optimize，optimizeChildGroup 开始优化
-  - optimizeChildGroup：
+  - `optimizeChildGroup`：
     - 注意UpperBound 变化 `context.getUpperBoundCost() - curTotalCost`
-    - `pushTask((EnforceAndCostTask) clone())` ：等input group 后继续计算cost，注意`curChildIndex/prevChildIndex` 含义
+    - `pushTask((EnforceAndCostTask) clone())` ：等input group 计算结束后继续计算当前Cost，理解`curChildIndex/prevChildIndex` 含义
   - 若成功获取所有input group的 BestExpression，就可以计算当前groupExpression 的Cost，并更新`lowestCostExpressions/lowestCostTable`
 
 ```java
@@ -491,7 +491,7 @@ private void recordCostsAndEnforce(PhysicalPropertySet outputProperty,
 
 > A(any, any) -> Enforce(sort, any) -> B(sort, any) 
 
-多了Enforce，cost 增加了。
+多了Enforce，Cost 自然增加。
 
 ```java
 // com.starrocks.sql.optimizer.task.EnforceAndCostTask#enforceProperty
