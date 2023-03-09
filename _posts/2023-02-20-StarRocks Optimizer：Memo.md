@@ -246,7 +246,8 @@ Stack 结构**先进后出**，利用此特性可以Top-Down 遍历，看图感�
   - `ApplyRuleTask` 将Rule 应用到 GroupExpression 进行Expression 变换(`logical->logical` or `logical->physical`)
   - `DeriveStatsTask` 收集统计信息
   - `ExploreGroupTask` 探索当前GroupExpression 的input Group
-- `DeriveStatsTask` **收集统计信息**，这个task 逻辑最简单
+  - ExploreGroupTask 和DeriveStatsTask 顺序 执行有讲究的，这样保证执行DeriveStatsTask 时，子group 都已执行DeriveStatsTask
+- `DeriveStatsTask` **收集统计信息**(保证子group 已执行该task)，这个task 逻辑最简单
 - `ExploreGroupTask` 会调用 OptimizeExpressionTask 来优化，isExplore=true
 - `ApplyRuleTask` 将Rule  应用到 GroupExpression，可能会生成新的Expression
   - 生成logical Expression：调用 OptimizeExpressionTask 继续优化新生成的Expression
@@ -292,11 +293,12 @@ OptimizeExpressionTask -> ApplyRuleTask -> 新的PhysicalExpression(PhysicalNest
 
 然后开始新一轮的`EnforceAndCostTask`，与之前不同的是，input cost 都已经计算过了，无需再递归计算。
 
-> 1. 在初始时只有basic groups，每个group中一个initial logical m-expr，和AST中的expr一一对应
-> 2. 开始对top group执行O_GROUP task，其中会对唯一的m-expr调用O_EXPR，生成logical/physical m-exprs，并优先对生成的physical m-expr生成O_INPUTS task，递归下去得到完成的physical plan，并用其cost更新search context中的cost upper bound，帮助后续pruning。
-> 3. 新生成的logical m-expr会继续优化导致一系列m-expr的生成，从而在已有group中扩展新的m-expr或在search space中加入新的group
-> 4. 优化过程中会不断有physical m-expr的生成，然后就递归到下层去生成对应的plan/subplan，并得到各个层次上的局部最优解记入winner中，并返回到上层做汇总，最终回到top group得到完整physical plan
-> 5. 最终top group不再有新的logical / physical m-expr生成时，优化结束
+> 1. 在初始时只有basic groups，每个group中一个initial logical m-expr，和AST中的expr 一一对应
+> 2. 开始对root group执行OptimizeGroupTask，其中会对唯一的m-expr调用OptimizeExpressionTask，生成logical/physical m-exprs
+> 3. 新生成的logical m-expr 会继续优化导致一系列m-expr 的生成，从而在已有group 中扩展新的m-expr 或在memo 中加入新的group
+> 4. 新生成的physical m-expr生成EnforceAndCostTask，递归下去得到完成的physical plan，并用其cost更新search context中的cost upper bound，帮助后续pruning。
+> 5. 优化过程中会不断有physical m-expr 的生成，然后就递归到下层去生成对应的plan/subplan，并得到各个层次上的局部最优解记入lowestCostExpressions/lowestCostTable 中，并返回到上层做汇总，最终回到top group 得到完整physical plan
+> 6. 最终root group 不再有新的logical / physical m-expr生成时，优化结束
 
 #### Cost
 
@@ -434,7 +436,7 @@ private void optimizeChildGroup(PhysicalPropertySet inputProperty, Group childGr
 }
 ```
 
-`Cost = localCost + inputCost`
+`Cost = localCost + inputCost` =>  CostModel.calculateCost Cost计算函数
 
 > 每个physical expr 为起点深度优先，向下查找，首先会扣除它自身的Cost，并根据其上层的property requirement 以及expr 自身的property 特性，形成对其输入group 的physical property 要求，这样就从当前level 1 的(Cost , prop requirement1) 递归到了下层group (level 2)，optimization goal变为了 (Cost - l1 Cost, prop requirement2)。
 
