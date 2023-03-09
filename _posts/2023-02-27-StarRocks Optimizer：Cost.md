@@ -223,10 +223,10 @@ public class Statistics {
   private final boolean tableRowCountMayInaccurate;
 ```
 
-- visitOperator 涉及**谓词下推**，后续再看；这个满重要的，影响**基数估计**
+- visitOperator 还有**谓词下推**操作，后续再看；这个满重要的，影响**基数估计**
 - 这个类对Cost model 很重要，后续挑几个Operator 分析
 
-逻辑还是比较清晰，获取table_statistic_v1表数据转换为`ColumnStatistic` 的逻辑都在 `StatisticExecutor`
+逻辑还是比较清晰，获取table_statistic_v1表数据转换为`ColumnStatistic` (与table_statistic_v1表字段差不多)的逻辑都在 `StatisticExecutor`
 
 ### Cost
 
@@ -271,6 +271,8 @@ public static double getRealCost(CostEstimate costEstimate) {
 - `networkCostWeight = 1.5`
 
   > Cost = Cpu\*0.5 + memory\*2 + network\*1.5 
+
+为啥没有Disk IO Cost？
 
 #### Estimation
 
