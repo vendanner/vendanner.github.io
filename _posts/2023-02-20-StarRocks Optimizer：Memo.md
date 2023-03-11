@@ -66,7 +66,7 @@ public class Group {
   - `ExploreGroupTask` 会修改
 - `lowestCostExpressions`：
   - 代表每一个 Group 中，满足 **Required Property** 下的最佳 Expression，并记录相应的 `Cost`
-  - 生成最优物理计划时使用
+  - 生成[最优物理计划](https://vendanner.github.io/2023/03/11/StarRocks-Optimizer-Extract-Best-Plan/)时使用
 
 #### GroupExpression
 
