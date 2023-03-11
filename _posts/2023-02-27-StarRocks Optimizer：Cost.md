@@ -223,10 +223,24 @@ public class Statistics {
   private final boolean tableRowCountMayInaccurate;
 ```
 
-- visitOperator 还有**谓词下推**操作，后续再看；这个满重要的，影响**基数估计**
+- visitOperator 还有**谓词下推**操作，后续再看；这个满重要的，影响**基数估计**(**Output RowCount** 准不准确由此决定，Cost大小由outputRowCount 决定)
 - 这个类对Cost model 很重要，后续挑几个Operator 分析
 
 逻辑还是比较清晰，获取table_statistic_v1表数据转换为`ColumnStatistic` (与table_statistic_v1表字段差不多)的逻辑都在 `StatisticExecutor`
+
+```java
+// com.starrocks.sql.optimizer.statistics.ColumnStatistic
+public class ColumnStatistic {
+  private final double minValue;
+  private final double maxValue;
+  private final double nullsFraction;
+  private final double averageRowSize;
+  private final double distinctValuesCount;
+  private final Histogram histogram;
+  private final StatisticType type;
+```
+
+
 
 ### Cost
 
