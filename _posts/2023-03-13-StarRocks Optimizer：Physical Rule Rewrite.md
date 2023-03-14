@@ -180,5 +180,5 @@ private static OptExpression generateDecodeOExpr(DecodeContext context, List<Opt
 
 [StarRocks 优化器代码导读](https://zhuanlan.zhihu.com/p/577956480)
 
-[StarRocks 技术内幕 | 基于全局字典的极速字符串查询](https://zhuanlan.zhihu.com/p/554256193)
+[StarRocks 技术内幕-基于全局字典的极速字符串查询](https://zhuanlan.zhihu.com/p/554256193)
 
