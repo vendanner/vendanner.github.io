@@ -288,6 +288,8 @@ public static double getRealCost(CostEstimate costEstimate) {
 
 为啥没有Disk IO Cost？
 
+>  OLTP 主要是 优化器需要决定不同的scan 方式，比如全表扫，走哪种索引，但是 SR 里面 scan的 索引都是自适应，或者是走索引的顺序是确定的，比如前缀索引，zonemap 索引，不同的表通过行数就可以简单评估 IO的cost。 
+
 #### Estimation
 
 统计信息 -> Cost ?
