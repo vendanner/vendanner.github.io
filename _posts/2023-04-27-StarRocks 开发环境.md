@@ -254,7 +254,38 @@ Clion 选择 `Remote debug`，填入'target remote args' 即可，例如 `xxx:80
 - 开发机修改代码，git push 提交到github
 - 远程机git pull 拉取代码，编译运行
 
+### PR
 
+正常提交，直接 `git push origin 分支` 即可。当和别人的代码有冲突时，需要解决冲突 
+
+```shell
+# 从上游拉去最新代码到 main 分支
+git checkout main
+git rebase upstream main
+
+# 最新代码合并到当前开发的分支
+git checkout feat_19548
+git rebase -i main
+# 此时会输出冲突的文件
+Auto-merging test/sql/test_time_fn/R/test_time_fn
+CONFLICT (content): Merge conflict in test/sql/test_time_fn/R/test_time_fn
+error: could not apply f7d3ba02a... add: last_day function sql test
+Resolve all conflicts manually, mark them as resolved with
+"git add/rm <conflicted_files>", then run "git rebase --continue".
+You can instead skip this commit: run "git rebase --skip".
+To abort and get back to the state before "git rebase", run "git rebase --abort".
+Could not apply f7d3ba02a... add: last_day function sql test
+# 本例中，去修改 test/sql/test_time_fn/R/test_time_fn 合并冲突
+vi test/sql/test_time_fn/R/test_time_fn	
+
+git add test/sql/test_time_fn/R/test_time_fn 
+# 执行以下命令，输出 Successfully rebased and updated refs/heads/feat_19548. 表示冲突已解决，可以提交
+# 若还是有提示冲突文件，继续上面解决冲突文件的步骤
+git rebase --continue
+
+# 提交
+git push -f origin feat_19548
+```
 
 
 
@@ -267,3 +298,5 @@ Clion 选择 `Remote debug`，填入'target remote args' 即可，例如 `xxx:80
 [StarRocks 完美开发环境搭建](https://www.inlighting.org/archives/setup-perfect-starrocks-dev-env)
 
 [code jump via Clion](https://github.com/StarRocks/community/blob/main/Contributors/guide/Clion.md#use-clion-to-load-starrocks-code)
+
+[冲突解决](https://doris.apache.org/zh-CN/community/how-to-contribute/pull-request#4-%E5%86%B2%E7%AA%81%E8%A7%A3%E5%86%B3)
