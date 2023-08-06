@@ -36,7 +36,7 @@ git checkout -b RTFSC   # 拉个分支出来测试
 docker pull centos:7
 docker run -it \
 -v /用户目录/duckdb:/root/duckdb # git clone 代码挂载到容器 /root/duckdb 目录
--name duckdb-test 
+--name duckdb-test 
 -d centos:latest
 
 # 进入docker
@@ -86,7 +86,7 @@ D
 
 ### 代码修改
 
-Mac 上 IDEA 直接打开duckdb 根目录，等待自动加载；加载完成后代码点击后能自动跳转，可以开始阅读和修改代码。
+Mac 上 Clion 直接打开duckdb 根目录，等待自动加载；加载完成后代码点击后能自动跳转，可以开始阅读和修改代码。
 
 修改后，在docker 上编译和测试。
 
