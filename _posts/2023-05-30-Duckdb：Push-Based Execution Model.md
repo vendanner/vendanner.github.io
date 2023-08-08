@@ -21,7 +21,7 @@ tags:
 - Source：数据源
 - Sink：数据汇总，当前Pipeline 的Sink 必定是下一个Pipeline 的Source
 
-一般Operator 都是以上某一类别，但有少部分包含以上所有：`PhysicalHashJoin` Operator 包含三种类型。
+一般Operator 都是以上某一类别，但有少部分包含以上所有：`PhysicalHashJoin` 包含三种类型。
 
 #### Operator Interface
 
@@ -33,7 +33,7 @@ tags:
 
 - NEED_MORE_INPUT：已处理完当前输入，等待下一次输入
 - HAVE_MORE_OUTPUT：将使用相同的输入再次调用此 Operator(意味着Operator 没有处理完 input data)
-- FINISHED：不再产生输出，整个pipeline 会立即结束(pipeline 总是以Source 开始，Sink 结束)？待会看代码
+- FINISHED：不再产生输出
 
 ##### Vector Cach
 
@@ -64,7 +64,7 @@ batch
 所有线程都执行完成时才执行 `Finalize`，在pipeline 中只会**执行一次**。
 
 - READY：准备就绪
-- NO_OUTPUT_POSSIBLE：不会再输出，提早停止后续pipeline 的执行(hash join 时，probe 发现buidl table为空，可以直接结束)
+- NO_OUTPUT_POSSIBLE：不会再输出，提早停止pipeline 的后续执行(hash join 时，probe 发现buidl table为空，可以直接结束)
 - FINISHED：`sink` 标记完成
 
 ### Event
@@ -87,11 +87,11 @@ PipelineTask.ExecuteTask
 
 #### PipelineCompleteEvent
 
-标记`pipeline` 完成，并开始调度依赖此pipeline 的其他pipeline(在event 依赖都执行完成时会执行event.schedule 来对pipeline 生成新的task)
+标记`pipeline` 完成，并开始调度依赖此pipeline 的其他pipeline(event 的依赖event 都执行完成时，会执行event.schedule 来对pipeline 生成新的task)
 
 - 描述不是很准确，正确描述看下面
-  - Executor 中完成的 pipeline 计数+1 表示当前 pipeline 已执行完成
-  - 此event 执行结束后，由此pipeline 生成的 task 都已执行结束，调度器会中队列取出其他pipeline 任务(开始执行其他pipeline)
+  - Executor 中完成的 pipeline 计数+1 ，表示当前 pipeline 已执行完成
+  - 此event 执行结束后，对应pipeline 生成的 task 都已执行结束，调度器会从队列中取出其他pipeline 任务(开始执行其他pipeline)
 
 ### PipelineExecutor
 
@@ -122,6 +122,7 @@ events.push_back(std::move(pipeline_event));
 // dependencies: base_initialize -> pipeline_event -> base_finish
 pipeline_stack.pipeline_event.AddDependency(base_stack.pipeline_initialize_event);
 pipeline_stack.pipeline_finish_event.AddDependency(pipeline_stack.pipeline_event);
+...
 
 
 // Executor::ScheduleEventsInternal
@@ -230,10 +231,10 @@ bool Pipeline::LaunchScanTasks(shared_ptr<Event> &event, idx_t max_threads) {
 
 `PipelineExecutor::Execute` 执行返回后，判断所有任务是否都已完成(max_threads 任务量)；若都已完成调用 `Finish` 函数
 
-- 执行 `FinishEvent` 函数，大部分情况是空函数，较少情况有重写(后续分析)
+- 执行 `FinishEvent` 函数，大部分情况是空函数，较少情况有重写(PipelineFinishEvent)
 - 标记当前Event 已完成
-- 依赖此Event 的Event 的成员函数 `++finished_dependencies`，若依赖都执行完，开始执行`Event.Schedule`(生成任务压入队列)
-- 执行 `FinalizeFinish` 函数，大部分情况是空函数，较少情况有重写(后续分析)
+- 依赖此Event 的Event 成员函数 `++finished_dependencies`，若依赖都执行完，开始执行`Event.Schedule`(生成任务压入队列)
+- 执行 `FinalizeFinish` 函数，大部分情况是空函数，较少情况有重写(PipelineCompleteEvent)
 
 最后标记当前任务TaskExecutionResult::TASK_FINISHED
 
@@ -288,6 +289,10 @@ Executor 中完成的 pipeline 计数+1
 - 不同 Meta_Pipeline，也是靠`event` 触发
   - 当上游Meta_Pipelines 的 `PipelineCompleteEvent` 完成后，会触发下游 `PipelineEvent`
   - 而下游 `PipelineEvent` 会调用schedule 生成任务并压入队列
+
+结合本文，好好理解这句话
+
+> Pipelines are no longer scheduled as-is. Instead, pipelines are split up into "events" and events are scheduled.
 
 
 
