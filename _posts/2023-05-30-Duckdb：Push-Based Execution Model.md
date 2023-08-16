@@ -32,8 +32,8 @@ tags:
 接收数据，处理后继续往下游发送数据
 
 - NEED_MORE_INPUT：已处理完当前输入，等待下一次输入
-- HAVE_MORE_OUTPUT：将使用相同的输入再次调用此 Operator(意味着Operator 没有处理完 input data)
-- FINISHED：不再产生输出
+- HAVE_MORE_OUTPUT：将使用相同的输入再次调用此 Operator(Operator输入相同 input data 会产不同的输出)
+- FINISHED：不再产生输出(提早结束此Pipeline，后续sink 也不会执行)
 
 ##### Vector Cach
 
@@ -61,7 +61,7 @@ batch
 
 ##### Finalize
 
-所有线程都执行完成时才执行 `Finalize`，在pipeline 中只会**执行一次**。
+所有线程都执行完成时才执行 `Finalize`，在pipeline 中只会**执行一次**(上面所有函数都会并行执行)。
 
 - READY：准备就绪
 - NO_OUTPUT_POSSIBLE：不会再输出，提早停止pipeline 的后续执行(hash join 时，probe 发现buidl table为空，可以直接结束)
