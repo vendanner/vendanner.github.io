@@ -14,6 +14,24 @@ tags:
 ### TaskScheduler
 
 > 在 DuckDB 启动时会创建一个全局的 TaskScheduler，在后台启动(CPU内核数-1) 个后台线程，启动线程是在 TaskScheduler::SetThreadsInternal() 函数中进行
+>
+> (gdb) bt
+> #0  duckdb::TaskScheduler::SetThreadsInternal (this=0x2cfead80, n=5) at /root/duckdb/src/parallel/task_scheduler.cpp:267
+> #1  0x0000000002930620 in duckdb::TaskScheduler::SetThreads (this=0x2cfead80, n=5) at /root/duckdb/src/parallel/task_scheduler.cpp:245
+> #2  0x000000000286b4b4 in duckdb::DatabaseInstance::Initialize (this=0x2cfe8368, database_path=0x0, user_config=0xffffdd8ef698)
+>     at /root/duckdb/src/main/database.cpp:248
+> #3  0x000000000286b598 in duckdb::DuckDB::DuckDB (this=0x2cfe8330, path=0x0, new_config=0xffffdd8ef698)
+>     at /root/duckdb/src/main/database.cpp:252
+> #4  0x000000000236b67c in duckdb::make_uniq<duckdb::DuckDB, char const*&, duckdb::DBConfig*>(char const*&, duckdb::DBConfig*&&) ()
+>     at /root/duckdb/src/include/duckdb/common/helper.hpp:63
+> #5  0x0000000002363b40 in duckdb_shell_sqlite3_open_v2 (filename=0x0, ppDb=0xffffdd8efb48, flags=6, zVfs=0x0)
+>     at /root/duckdb/tools/sqlite3_api_wrapper/sqlite3_api_wrapper.cpp:118
+> #6  0x0000000002349004 in open_db (p=0xffffdd8efb48, openFlags=0) at /root/duckdb/tools/shell/shell.c:14241
+> #7  0x000000000235702c in runOneSqlLine (p=0xffffdd8efb48,
+>     zSql=0x2cfe6fb0 "SELECT * FROM read_csv_auto('/root/duckdb/data/csv/dirty_line.csv');", in=0x0, startline=1)
+>     at /root/duckdb/tools/shell/shell.c:19890
+> #8  0x0000000002357698 in process_input (p=0xffffdd8efb48) at /root/duckdb/tools/shell/shell.c:20015
+> #9  0x00000000023593b8 in main (argc=1, argv=0xffffdd8f0f18) at /root/duckdb/tools/shell/shell.c:20828
 
 ```c++
 // src/parallel/task_scheduler.cpp
@@ -30,11 +48,11 @@ vector<unique_ptr<atomic<bool>>> markers;
 
 TaskScheduler 数据结构
 
-- DatabaseInstance db实例
-- queue：任务队列
-- thread_lock：锁，修改threads 时使用
-- threads：后台线程数组
-- markers：标记，每个后台线程是否需要继续运行
+- `DatabaseInstance` db实例
+- `queue`：任务队列
+- `thread_lock`：锁，修改threads 时使用
+- `threads`：后台线程数组
+- `markers`：标记，每个后台线程是否需要继续运行
 
 ```c++
 // src/parallel/task_scheduler.cpp
@@ -117,7 +135,7 @@ void TaskScheduler::ExecuteForever(atomic<bool> *marker) {
 	}
 ```
 
-从`queue` 获取任务**Execute**，只要(*marker) 不为false 就一直执行。
+从`queue` 获取任务**Execute**，只要(*marker) 不为`false` 就会一直执行。
 
 #### queue
 
@@ -155,9 +173,9 @@ bool ConcurrentQueue::DequeueFromProducer(ProducerToken &token, shared_ptr<Task>
 }
 ```
 
-ConcurrentQueue 资料 https://github.com/cameron314/concurrentqueue
+`ConcurrentQueue` 资料 https://github.com/cameron314/concurrentqueue
 
-这个queue 写法，项目中借鉴价值。
+这个queue 写法，项目中值得借鉴。
 
 #### 生成任务
 
@@ -180,17 +198,18 @@ void TaskScheduler::ScheduleTask(ProducerToken &token, shared_ptr<Task> task) {
 }
 ```
 
-`event` 会产生task，并将task 插入queue，此时后台线程会被唤醒并取出任务执行
+`event` 会产生task，并将task 插入`queue`，此时后台线程会**被唤醒**来取任务执行
 
 #### 总结
 
-- TaskScheduler 开启(CPU内核数-1) 个后台线程，每个后台线程的任务都是从`queue` 取任务执行
+- TaskScheduler 开启(CPU内核数-1) 个后台线程，每个后台线程都是从`queue` 取任务执行
 - 后台线程在取任务时，会先阻塞，当`queue` 插入任务时，会唤醒某个线程
-- `event` schedule 函数会生成task(最常见的是**PipelineTask**)，插入到`queue`
+- `event` schedule 函数生成task(最常见的是**PipelineTask**)，插入到`queue`
   - 一个Pipeline 会生成**并发数**个任务
-  - Pipeline 是并行在执行
+  - Pipeline 并行在执行
 - 只要进入 `queue` 的任务是会并行的执行，很多后台线程抢着执行 => 任务是有依赖关系的，怎么解决？
   - 任务的依赖关系，是依赖于`event` ，每个Pipeline 会生成对应的event ，Pipeline 之间的依赖关系也会被附加到 `event` 之间(看上篇文章)
+  - 当依赖关系的event 未执行结束，当前event 不会产生 task
 
 ![](https://vendanner.github.io/img/duckdb/TaskScheduler.png)
 
@@ -198,7 +217,7 @@ void TaskScheduler::ScheduleTask(ProducerToken &token, shared_ptr<Task> task) {
 
 上一小节，描述 task 是如何被调度执行。下面看看task 内部是如何执行，以最常见的 `PipelineTask` 为例
 
-在 `TaskScheduler::ExecuteForever ` 会执行 `task->Execute`
+在 `TaskScheduler::ExecuteForever ` 执行 `task->Execute`
 
 ```c++
 // PipelineTask.ExecuteTask
@@ -255,9 +274,9 @@ bool remaining_sink_chunk = false;
 bool done_flushing = false;
 //! The operators that are not yet finished executing and have data remaining
 //! If the stack of in_process_operators is empty, we fetch from the source instead
-	stack<idx_t> in_process_operators;
+stack<idx_t> in_process_operators;
 //! Flushing of intermediate operators has started
-	bool started_flushing = false;
+bool started_flushing = false;
 
 PipelineExecuteResult PipelineExecutor::Execute() {
 	return Execute(NumericLimits<idx_t>::Maximum()); // uint64_t 最大值
@@ -345,22 +364,22 @@ PipelineExecuteResult PipelineExecutor::Execute(idx_t max_chunks) {
   - source 有数据，`FetchFromSource` 获取数据
     - -> `pipeline.source`-> `GetData`
     - 若source 返回`FINISHED` 表示source 数据已全部获取，设置 `exhausted_source=true`
-    - 否则调用`ExecutePushInternal` 执行`Operators`
+    - 调用`ExecutePushInternal` 执行`Operators`
   - `ExecutePushInternal`：`operators->sink` 执行
     - 返回三种状态
       - `NEED_MORE_INPUT`： 上层循环继续，看情况输入不同的data 调此函数
       - `FINISHED`：上层结束循环，该pipeline 结束
       -  `BLOCKED`：上层直接退出循环，进入**异常处理**
-    - ·Execute·: ·operators` 执行
+    - `Execute`: `operators` 执行
       - 返回三种状态
         - `NEED_MORE_INPUT`：上层返回` NEED_MORE_INPUT`(表示当前批次数据已处理完)
         - `FINISHED`：上层返回 `FINISHED`
         - `HAVE_MORE_OUTPUT`：上层用当前批次数据继续调用此函数，让operator 产生新的输出
 - 当 `exhausted_source=true`，`done_flushing=false` 时
   -  什么时候会发生这种情况？ `FetchFromSource` 一次调用将全部数据获取完毕
-  - 调用 `TryFlushCachingOperators`，内部也会调 `ExecutePushInternal`，执行一遍所有的 Operators
+  - 调用 `TryFlushCachingOperators`，内部也会调 `ExecutePushInternal`，执行 Operators
   - 一次数据处理流程：source->operatos->sink，反复调用直到 source 无数据；
-  -  当一次性就能获取source 时，执行operatos->sink 即可无需再重复
+  -  当一次性就能获取全部source 时，执行operatos->sink 即可无需再重复获取Source
 -  当 `in_process_operators` 不为空时，表示有 operator 需要之前的数据重新再调用(`HAVE_MORE_OUTPUT`)
   - ExecutePushInternal(source_chunk)  
 
@@ -437,7 +456,7 @@ OperatorResultType PipelineExecutor::ExecutePushInternal(DataChunk &input, idx_t
     - `NEED_MORE_INPUT`：表示当前批次数据已处理完毕，sink 处理后返回上层，等待**新批次数据**调用
     - `FINISHED`：operator结束，直接返回FINISHED，整个pipeline 任务结束
     - `HAVE_MORE_OUTPUT`：用当前input 继续调用Execute
-- 只要不是`FINISHED`，`Operator` 返回的data 会让`Sink->sink` 处理
+- 只要不是`FINISHED`，`Operator` 返回的data 都会让`Sink->sink` 处理
 - sink 函数只要不返回 FINISHED，继续循环
   - Operator 不返回NEED_MORE_INPUT、FINISHED，继续循环
   - 表示当前批次的数据，Operators 还要**再处理**(`HAVE_MORE_OUTPUT`)
@@ -536,8 +555,8 @@ OperatorResultType PipelineExecutor::Execute(DataChunk &input, DataChunk &result
  按顺序执行 `Operator`
 
 - `GoToSource`： 校准从哪个opeartor 开始执行(默认是 initial_idx)
-  - 存在 `in_process_operators`，直接从`in_process_operators` 开始，
-  - 因为当前输入的数据，在in_process_operators 之前的operator 上次已执行没必要重新执行
+  - 如果存在 `in_process_operators`，直接从`in_process_operators` 开始，
+  - 因为当前输入的数据，在in_process_operators 之前的operator 上次已执行，没必要重新执行
 - 判断 `Operators` 是否都已执行，返回 `NEED_MORE_INPUT`
 - while：遍历执行 `Operator`
   - `Operator` 返回 `HAVE_MORE_OUTPUT`： `in_process_operators`，
@@ -567,12 +586,12 @@ void PipelineExecutor::PushFinalize() {
 数据处理完成流程：Source -> Operator -> Sink
 
 - `Execute`：从 `source` 获取数据 `Inputdata`，给 `ExecutePushInternal` 消费
-  - 收到 ExecutePushInternal 返回 NEED_MORE_INPUT：
+  - 收到 ExecutePushInternal 返回 `NEED_MORE_INPUT`：
     - 若 `source` 数据都已获取且已输出：退出，当前`Pipeline` 执行完毕
     - 若 `source` 数据都已获取但存在`in_process_operators`：当前`Inputdata` 给`ExecutePushInternal`
     - 若 `source` 还有数据，继续 getdata，给 `ExecutePushInternal`
   - 收到 `ExecutePushInternal` 返回 `FINISHED`：退出，当前Pipeline 执行结束
-  - `ExecutePushInternal`：将 `Inputdata 给Operator` 消费，结果继续给`Sink`消费
+  - `ExecutePushInternal`：将 `Inputdata` 给`Operator` 消费，结果继续给`Sink`消费
     - 收到 Execute 返回 `NEED_MORE_INPUT`：等sink 消费后，向上层返回`NEED_MORE_INPUT`，需要继续输入新的 Inputdata
     - 收到 Execute 返回 `FINISHED`：返回FINISHED 表示直接**结束**
     - 收到 Execute 返回 `HAVE_MORE_OUTPUT`：表示Execute 要再消费一次当前 Inputdata，继续Execute(Inputdata)
